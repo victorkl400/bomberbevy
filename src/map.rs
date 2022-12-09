@@ -1,4 +1,8 @@
-use bevy_rapier3d::{geometry::Collider, prelude::*};
+use bevy_rapier3d::{
+    geometry::Collider,
+    prelude::{ActiveEvents, *},
+    rapier::prelude::{ColliderBuilder, ColliderFlags, ColliderShape},
+};
 use serde::{Deserialize, Serialize};
 use std::{
     fs::File,
@@ -88,7 +92,7 @@ fn spawn_object(
 ) -> Entity {
     //Make interactive objects bigger
     let scale = if object_props.interactive {
-        default_scale + Vec3::new(0.5, 0.5, 0.5)
+        default_scale //+ Vec3::new(0.5, 0.5, 0.5)
     } else {
         default_scale
     };
@@ -109,7 +113,10 @@ fn spawn_object(
         ..default()
     });
     if object_props.interactive {
-        object_spawn.insert(Sensor);
+        object_spawn
+            .insert(Sensor)
+            .insert(ActiveCollisionTypes::KINEMATIC_STATIC)
+            .insert(ActiveEvents::COLLISION_EVENTS);
     }
     object_spawn
         .insert(Collider::cuboid(0.5, 0.5, 0.3))

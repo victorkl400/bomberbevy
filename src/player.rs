@@ -2,8 +2,9 @@ use bevy::prelude::*;
 use bevy_inspector_egui::Inspectable;
 use bevy_rapier3d::{
     prelude::{
-        Collider, ExternalForce, NoUserData, RapierContext, RapierPhysicsPlugin, Restitution,
-        RigidBody,
+        ActiveCollisionTypes, ActiveEvents, Collider, CollisionEvent, ExternalForce,
+        KinematicCharacterController, KinematicCharacterControllerOutput, NoUserData,
+        RapierContext, RapierPhysicsPlugin, Restitution, RigidBody,
     },
     render::RapierDebugRenderPlugin,
 };
@@ -18,14 +19,14 @@ pub struct Player {
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugin(RapierPhysicsPlugin::<NoUserData>::default())
-            // .add_plugin(RapierDebugRenderPlugin::default())
+            .add_plugin(RapierDebugRenderPlugin::default())
             .add_startup_system(spawn_player)
-            .add_system(player_movement)
-            .add_system(display_events);
+            .add_system(player_movement);
     }
 }
 
 fn player_movement(
+    mut controllers: Query<&mut KinematicCharacterController>,
     mut player_query: Query<(&Player, &mut Transform)>,
     keyboard: Res<Input<KeyCode>>,
     time: Res<Time>,
@@ -47,16 +48,12 @@ fn player_movement(
     if keyboard.pressed(KeyCode::D) {
         x_delta += player.speed * time.delta_seconds();
     }
+
     let target = transform.translation + Vec3::new(x_delta, 0.0, z_delta);
     transform.translation = target;
-}
 
-/* A system that displays the events. */
-fn display_events(rapier_context: Res<RapierContext>) {
-    for pair in rapier_context.contact_pairs() {
-        if pair.has_any_active_contacts() {
-            println!("Received collision context {:?}", pair.collider1());
-        }
+    for mut controller in controllers.iter_mut() {
+        controller.translation = Some(Vec3::new(x_delta, 0.0, z_delta));
     }
 }
 
@@ -75,10 +72,12 @@ fn spawn_player(mut commands: Commands, asset_server: Res<AssetServer>) {
         .insert(Name::new("Player"))
         .insert(RigidBody::Dynamic)
         .insert(Collider::cuboid(0.4, 0.1, 0.4))
+        // .insert(ActiveEvents::COLLISION_EVENTS)
         .insert(ExternalForce {
             force: Vec3::ZERO,
             torque: Vec3::ZERO,
         })
+        .insert(KinematicCharacterController { ..default() })
         .insert(Restitution::coefficient(0.1))
-        .insert(Player { speed: 1.4 });
+        .insert(Player { speed: 1.0 });
 }

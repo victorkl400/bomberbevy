@@ -1,12 +1,14 @@
 use bevy::{prelude::*, utils::HashMap};
 use bevy_egui::EguiPlugin;
 use bevy_inspector_egui::WorldInspectorPlugin;
+use item::ItemPlugin;
 use map::{MapPlugin, ObjectProps};
 use player::PlayerPlugin;
 use simula_action::ActionPlugin;
 use simula_camera::{flycam::*, orbitcam::*};
 use state::GameState;
 
+pub mod item;
 pub mod map;
 pub mod player;
 pub mod state;
@@ -32,6 +34,7 @@ fn main() {
         .add_plugin(ActionPlugin)
         .add_plugin(OrbitCameraPlugin)
         .add_plugin(PlayerPlugin)
+        .add_plugin(ItemPlugin)
         .add_plugin(FlyCameraPlugin)
         .add_plugin(MapPlugin)
         .add_plugin(WorldInspectorPlugin::new())
