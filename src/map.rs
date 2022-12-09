@@ -40,13 +40,14 @@ pub fn spawn_map_object(
 
     //If floor is needed , spawn floor and the object
     if object_props.add_floor {
-        //Spawn floor
+        //Spawn default floor
         spawn_floor(
             commands,
             object_props,
             asset_server,
             default_scale,
             translation,
+            true,
         );
         //Spawn Object
         return spawn_object(
@@ -59,13 +60,14 @@ pub fn spawn_map_object(
     }
     //If is a floor, custom collider
     if object_props.is_floor {
-        //Spawn Floor
+        //Spawn custom Floor
         return spawn_floor(
             commands,
             object_props,
             asset_server,
             default_scale,
             translation,
+            false,
         );
     }
     //Spawn Object
@@ -84,11 +86,24 @@ fn spawn_object(
     default_scale: Vec3,
     translation: Vec3,
 ) -> Entity {
+    //Make interactive objects bigger
+    let scale = if object_props.interactive {
+        default_scale + Vec3::new(0.5, 0.5, 0.5)
+    } else {
+        default_scale
+    };
+    //Make interactive objects floating
+    let translation = if object_props.interactive {
+        Vec3::new(translation.x, translation.y + 0.5, translation.z)
+    } else {
+        Vec3::new(translation.x, translation.y + 0.1, translation.z)
+    };
+
     let mut object_spawn = commands.spawn(SceneBundle {
         scene: asset_server.load(object_props.path.to_owned()),
         transform: Transform {
-            translation: Vec3::new(translation.x, translation.y + 0.1, translation.z),
-            scale: default_scale,
+            translation: translation,
+            scale: scale,
             ..default()
         },
         ..default()
@@ -108,10 +123,16 @@ fn spawn_floor(
     asset_server: &AssetServer,
     default_scale: Vec3,
     translation: Vec3,
+    default_floor: bool,
 ) -> Entity {
+    let path = if !default_floor {
+        object_props.path.clone().to_string()
+    } else {
+        "objects/tile.glb#Scene0".to_string()
+    };
     commands
         .spawn(SceneBundle {
-            scene: asset_server.load("objects/tile.glb#Scene0"),
+            scene: asset_server.load(path),
             transform: Transform {
                 translation: translation,
                 scale: default_scale,
@@ -121,7 +142,7 @@ fn spawn_floor(
         })
         .insert(RigidBody::Fixed)
         .insert(Collider::cuboid(1., 0.2, 1.))
-        .insert(Name::new("Floor"))
+        .insert(Name::new(object_props.name.clone()))
         .id()
 }
 fn create_basic_map(mut commands: Commands, asset_server: Res<AssetServer>) {

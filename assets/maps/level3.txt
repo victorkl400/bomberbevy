@@ -1,15 +1,15 @@
-R#BBBBBBBBBBBBBBBBBBBBBB#R
-#                        #
-BBBBB               %%%  B
-$   BBB       C          B
-B     B   !              B
-$    %%%%%%%%%%%%        B
-B    !!!!!!              B
-$    %!%   BBBBBB        B
-B               B        B
-$      %%%               B
-B           %%%          B
-$       %%%              B
-B                        B
-#   %%%                  #
-R#BBBBBBBBBBBBBBBBBBBBBB#R
+R#BB$BB$BB$BB$BB$BB$BB$BB#R
+#                         #
+BBBBB               %%%   B
+$   BBB       C           $
+B     B   !               B
+$    %%%%%%%%%%%%         $
+B    !!!!!!               B
+$    %!%   BBBBBB         $
+B               B         B
+$      %%%                $
+B           %%%           B
+$       %%%               $
+B                         B
+#   %%%                   #
+R#BB$BB$BB$BB$BB$BB$BB$BB#R

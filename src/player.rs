@@ -2,9 +2,8 @@ use bevy::prelude::*;
 use bevy_inspector_egui::Inspectable;
 use bevy_rapier3d::{
     prelude::{
-        Collider, CollisionEvent, ContactForceEvent, ExternalForce,
-        KinematicCharacterControllerOutput, NoUserData, RapierContext, RapierPhysicsPlugin,
-        Restitution, RigidBody,
+        Collider, ExternalForce, NoUserData, RapierContext, RapierPhysicsPlugin, Restitution,
+        RigidBody,
     },
     render::RapierDebugRenderPlugin,
 };
@@ -19,7 +18,7 @@ pub struct Player {
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugin(RapierPhysicsPlugin::<NoUserData>::default())
-            .add_plugin(RapierDebugRenderPlugin::default())
+            // .add_plugin(RapierDebugRenderPlugin::default())
             .add_startup_system(spawn_player)
             .add_system(player_movement)
             .add_system(display_events);
@@ -53,21 +52,11 @@ fn player_movement(
 }
 
 /* A system that displays the events. */
-fn display_events(
-    mut collision_events: EventReader<CollisionEvent>,
-    mut contact_force_events: EventReader<ContactForceEvent>,
-    rapier_context: Res<RapierContext>,
-) {
+fn display_events(rapier_context: Res<RapierContext>) {
     for pair in rapier_context.contact_pairs() {
-        println!("Received collision context {:?}", pair.collider1());
-    }
-
-    for collision_event in collision_events.iter() {
-        println!("Received collision event: {:?}", collision_event);
-    }
-
-    for contact_force_event in contact_force_events.iter() {
-        println!("Received contact force event: {:?}", contact_force_event);
+        if pair.has_any_active_contacts() {
+            println!("Received collision context {:?}", pair.collider1());
+        }
     }
 }
 
