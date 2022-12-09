@@ -13,3 +13,4 @@ simula_action = { git = "https://github.com/Simbotic/simula.git", branch = "bevy
 bevy_egui = "0.17"
 bevy-inspector-egui = "0.14"
 bevy_rapier3d = {version = "0.19.0"}
+serde = { version = "1.0", features = ["derive"] }

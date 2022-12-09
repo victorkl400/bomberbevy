@@ -1,7 +1,7 @@
-use bevy::prelude::*;
+use bevy::{prelude::*, utils::HashMap};
 use bevy_egui::EguiPlugin;
 use bevy_inspector_egui::WorldInspectorPlugin;
-use map::MapPlugin;
+use map::{MapPlugin, ObjectProps};
 use player::PlayerPlugin;
 use simula_action::ActionPlugin;
 use simula_camera::{flycam::*, orbitcam::*};
@@ -42,27 +42,27 @@ fn main() {
 fn setup(mut commands: Commands) {
     // camera
     commands.spawn(Camera3dBundle {
-        transform: Transform::from_xyz(0.0, 11.0, 6.0).looking_at(Vec3::ZERO, Vec3::Y),
+        transform: Transform::from_xyz(0.0, 11.0, 7.0).looking_at(Vec3::ZERO, Vec3::Y),
         ..default()
     });
 
     // light
     commands.spawn(PointLightBundle {
         point_light: PointLight {
-            intensity: 1500.0,
+            intensity: 5000.0,
             shadows_enabled: false,
             ..default()
         },
-        transform: Transform::from_xyz(0.0, 7.0, 0.5),
+        transform: Transform::from_xyz(0.0, 5.0, 0.5),
         ..default()
     });
-    commands.spawn(SpotLightBundle {
-        spot_light: SpotLight {
-            intensity: 2500.0,
-            shadows_enabled: true,
-            ..default()
-        },
-        transform: Transform::from_xyz(0.0, 7.0, 0.5).looking_at(Vec3::ZERO, Vec3::Y),
-        ..default()
-    });
+    // commands.spawn(SpotLightBundle {
+    //     spot_light: SpotLight {
+    //         intensity: 5500.0,
+    //         shadows_enabled: false,
+    //         ..default()
+    //     },
+    //     transform: Transform::from_xyz(0.0, 3.0, 0.5).looking_at(Vec3::ZERO, Vec3::Y),
+    //     ..default()
+    // });
 }

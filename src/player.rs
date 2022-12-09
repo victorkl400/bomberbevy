@@ -2,8 +2,9 @@ use bevy::prelude::*;
 use bevy_inspector_egui::Inspectable;
 use bevy_rapier3d::{
     prelude::{
-        Collider, ExternalForce, KinematicCharacterControllerOutput, NoUserData,
-        RapierPhysicsPlugin, Restitution, RigidBody,
+        Collider, CollisionEvent, ContactForceEvent, ExternalForce,
+        KinematicCharacterControllerOutput, NoUserData, RapierContext, RapierPhysicsPlugin,
+        Restitution, RigidBody,
     },
     render::RapierDebugRenderPlugin,
 };
@@ -18,10 +19,10 @@ pub struct Player {
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugin(RapierPhysicsPlugin::<NoUserData>::default())
-            // .add_plugin(RapierDebugRenderPlugin::default())
+            .add_plugin(RapierDebugRenderPlugin::default())
             .add_startup_system(spawn_player)
             .add_system(player_movement)
-            .add_system(modify_character_controller_slopes);
+            .add_system(display_events);
     }
 }
 
@@ -50,14 +51,23 @@ fn player_movement(
     let target = transform.translation + Vec3::new(x_delta, 0.0, z_delta);
     transform.translation = target;
 }
-fn modify_character_controller_slopes(
-    mut character_controller_outputs: Query<&mut KinematicCharacterControllerOutput>,
+
+/* A system that displays the events. */
+fn display_events(
+    mut collision_events: EventReader<CollisionEvent>,
+    mut contact_force_events: EventReader<ContactForceEvent>,
+    rapier_context: Res<RapierContext>,
 ) {
-    for mut output in character_controller_outputs.iter_mut() {
-        for collision in &output.collisions {
-            // Do something with that collision information.
-            println!("colisao {:?}", collision);
-        }
+    for pair in rapier_context.contact_pairs() {
+        println!("Received collision context {:?}", pair.collider1());
+    }
+
+    for collision_event in collision_events.iter() {
+        println!("Received collision event: {:?}", collision_event);
+    }
+
+    for contact_force_event in contact_force_events.iter() {
+        println!("Received contact force event: {:?}", contact_force_event);
     }
 }
 
@@ -75,7 +85,7 @@ fn spawn_player(mut commands: Commands, asset_server: Res<AssetServer>) {
         })
         .insert(Name::new("Player"))
         .insert(RigidBody::Dynamic)
-        .insert(Collider::cuboid(0.3, 0.3, 0.3))
+        .insert(Collider::cuboid(0.4, 0.1, 0.4))
         .insert(ExternalForce {
             force: Vec3::ZERO,
             torque: Vec3::ZERO,

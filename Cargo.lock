@@ -2256,6 +2256,7 @@ dependencies = [
  "bevy-inspector-egui",
  "bevy_egui",
  "bevy_rapier3d",
+ "serde",
  "simula_action",
  "simula_camera",
  "simula_video",
