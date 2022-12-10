@@ -8,11 +8,7 @@ use bevy::{
 use bevy_kira_audio::{DynamicAudioChannel, DynamicAudioChannels};
 use bevy_rapier3d::prelude::CollisionEvent;
 
-use crate::{
-    audio::play_sfx,
-    map::Breakable,
-    player::{Bomb, Player},
-};
+use crate::{audio::play_sfx, bomb::Bomb, map::Breakable, player::Player};
 
 #[derive(Component)]
 pub struct InteractiveItem;
@@ -28,8 +24,8 @@ impl Plugin for ItemPlugin {
 
 pub fn player_collision_listener(
     mut collision_events: EventReader<CollisionEvent>,
-    mut player_query: Query<Entity, With<Player>>,
-    mut interactive_query: Query<(Entity, &InteractiveItem), Without<Player>>,
+    mut player_query: Query<(Entity, &mut Player), With<Player>>,
+    interactive_query: Query<(Entity, &InteractiveItem), Without<Player>>,
     mut commands: Commands,
     asset_server: Res<AssetServer>,
     mut audio: ResMut<DynamicAudioChannels>,
@@ -39,7 +35,7 @@ pub fn player_collision_listener(
         match collision_event {
             CollisionEvent::Started(entity_1, entity_2, _flags) => {
                 //If found an event, check if envolves the player
-                let player_entity = player_query.single_mut();
+                let (player_entity, mut player) = player_query.single_mut();
                 let has_player_collide = player_entity == *entity_1 || player_entity == *entity_2;
 
                 //If event is not related to player, ignore it, another
@@ -59,15 +55,16 @@ pub fn player_collision_listener(
                     break;
                 }
 
-                // Collision IN
-                println!("Player has collided with item {:?} ", item_entity);
-                // Despawn item
+                // Despawn item and play sound
                 item_collision(
                     &mut commands,
                     item_entity.to_owned(),
                     asset_server.to_owned(),
                     audio.create_channel("sfx"),
-                )
+                    String::from("audios/sfx/get_item.ogg"),
+                );
+                //Give Player Upgrade
+                player.speed += 0.1;
             }
             CollisionEvent::Stopped(_e1, _e2, _flags) => {
                 // Collision OUT
@@ -81,6 +78,8 @@ pub fn explosion_collision_listener(
     bomb_query: Query<Entity, With<Bomb>>,
     breakable_query: Query<(Entity, &Breakable), Without<Bomb>>,
     mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    mut audio: ResMut<DynamicAudioChannels>,
 ) {
     //Iterate over collision events
     for collision_event in collision_events.iter() {
@@ -94,11 +93,6 @@ pub fn explosion_collision_listener(
                 let has_breakable_collide =
                     breakable_query.contains(*entity_1) || breakable_query.contains(*entity_2);
 
-                println!(
-                    "Bomb collided? {} , Breakable collided? {}",
-                    has_bomb_collide, has_breakable_collide
-                );
-
                 //If event is not related to bomb and breakables, ignore it, another
                 //listener should handle it
                 if !has_bomb_collide || !has_breakable_collide {
@@ -111,15 +105,15 @@ pub fn explosion_collision_listener(
                 } else {
                     entity_2
                 };
-                //Get the bomb entity
-                let bomb_entity = if bomb_query.contains(*entity_1) {
-                    entity_1
-                } else {
-                    entity_2
-                };
 
-                //Despawn breakable
-                commands.entity(*breakable_entity).despawn_recursive();
+                // Despawn breakable and play explosion sound
+                item_collision(
+                    &mut commands,
+                    breakable_entity.to_owned(),
+                    asset_server.to_owned(),
+                    audio.create_channel("sfx"),
+                    String::from("audios/sfx/bomb_explosion.ogg"),
+                )
             }
             CollisionEvent::Stopped(_e1, _e2, _flags) => {
                 // Collision OUT
@@ -145,21 +139,20 @@ pub fn item_collision(
     item_entity: Entity,
     asset_server: AssetServer,
     audio: &DynamicAudioChannel,
+    audio_source: String,
 ) {
     // Despawn item
     commands.entity(item_entity).despawn_recursive();
     //Play Sound
 
-    play_sfx(audio, asset_server)
-    //Give Player Upgrade
+    play_sfx(audio, asset_server, audio_source)
 }
 
 fn animate_interactive_items(
-    mut commands: Commands,
     mut item_query: Query<(&mut InteractiveItem, &mut Transform)>,
     time: Res<Time>,
 ) {
-    for (interactive_item, mut item_transform) in item_query.iter_mut() {
+    for (_interactive_item, mut item_transform) in item_query.iter_mut() {
         item_transform.rotation = Quat::from_rotation_y(time.elapsed_seconds() as f32);
     }
 }

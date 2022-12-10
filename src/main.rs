@@ -2,6 +2,8 @@ use audio::GameAudioPlugin;
 use bevy::prelude::*;
 use bevy_egui::EguiPlugin;
 use bevy_inspector_egui::WorldInspectorPlugin;
+use bomb::BombPlugin;
+use constants::{HEIGHT, WIDTH};
 use item::ItemPlugin;
 use map::MapPlugin;
 use player::PlayerPlugin;
@@ -10,13 +12,12 @@ use simula_camera::{flycam::*, orbitcam::*};
 use state::GameState;
 
 pub mod audio;
+pub mod bomb;
 pub mod constants;
 pub mod item;
 pub mod map;
 pub mod player;
 pub mod state;
-pub const HEIGHT: f32 = 720.0;
-pub const WIDTH: f32 = 1280.0;
 
 fn main() {
     let mut app = App::new();
@@ -39,6 +40,7 @@ fn main() {
         .add_plugin(OrbitCameraPlugin)
         .add_plugin(PlayerPlugin)
         .add_plugin(ItemPlugin)
+        .add_plugin(BombPlugin)
         .add_plugin(FlyCameraPlugin)
         .add_plugin(MapPlugin)
         .add_plugin(WorldInspectorPlugin::new())

@@ -1,7 +1,6 @@
-use bevy::{ecs::component::ComponentStorage, prelude::*};
+use bevy::prelude::*;
 use bevy_kira_audio::{
-    Audio, AudioApp, AudioChannel, AudioControl, AudioPlugin, AudioSource, DynamicAudioChannel,
-    DynamicAudioChannels,
+    AudioApp, AudioChannel, AudioControl, AudioPlugin, AudioSource, DynamicAudioChannel,
 };
 
 #[derive(Resource, Component, Default, Clone)]
@@ -49,8 +48,8 @@ fn load_audio(mut commands: Commands, asset_server: Res<AssetServer>) {
 ///
 /// * `channel`: The channel to play the sound on.
 /// * `asset_server`: AssetServer - This is the asset server that we created in the previous section.
-pub fn play_sfx(channel: &DynamicAudioChannel, asset_server: AssetServer) {
-    let sfx_item_handle: Handle<AudioSource> = asset_server.load("audios/sfx/get_item.ogg");
+pub fn play_sfx(channel: &DynamicAudioChannel, asset_server: AssetServer, path: String) {
+    let sfx_item_handle: Handle<AudioSource> = asset_server.load(path);
     channel.set_volume(0.15);
     channel.play(sfx_item_handle);
 }

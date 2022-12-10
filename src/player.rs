@@ -2,38 +2,28 @@ use std::time::Duration;
 
 use bevy::prelude::*;
 use bevy_rapier3d::{
-    na::ComplexField,
     prelude::{
-        ActiveCollisionTypes, ActiveEvents, Collider, ExternalForce, KinematicCharacterController,
-        NoUserData, RapierPhysicsPlugin, Restitution, RigidBody, Sensor,
+        Collider, ExternalForce, KinematicCharacterController, NoUserData, RapierPhysicsPlugin,
+        Restitution, RigidBody,
     },
-    rapier::prelude::{Isometry, SharedShape},
     render::RapierDebugRenderPlugin,
 };
-
-use crate::{item::InteractiveItem, map::Breakable};
 
 pub struct PlayerPlugin;
 
 #[derive(Component)]
 pub struct Player {
-    speed: f32,
-    bomb_delay: Timer,
-    bomb_range: f32,
-}
-#[derive(Component)]
-pub struct Bomb {
-    explode_timer: Timer,
+    pub speed: f32,
+    pub bomb_delay: Timer,
+    pub bomb_range: f32,
 }
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugin(RapierPhysicsPlugin::<NoUserData>::default())
-            .add_plugin(RapierDebugRenderPlugin::default())
+            // .add_plugin(RapierDebugRenderPlugin::default())
             .add_startup_system(spawn_player)
-            .add_system(player_movement)
-            .add_system(drop_bomb)
-            .add_system(explode_bomb);
+            .add_system(player_movement);
     }
 }
 
@@ -96,13 +86,13 @@ fn spawn_player(mut commands: Commands, asset_server: Res<AssetServer>) {
             scene: asset_server.load("objects/enemy_ufoRedWeapon.glb#Scene0"),
             transform: Transform {
                 translation: Vec3::new(0.0, 0.4, 0.2),
-                scale: Vec3::new(0.57, 1., 0.57),
+                scale: Vec3::new(0.5, 0.8, 0.5),
                 ..Default::default()
             },
             ..default()
         })
         .insert(RigidBody::Dynamic)
-        .insert(Collider::cuboid(0.25, 0.1, 0.4))
+        .insert(Collider::cuboid(0.4, 0.2, 0.4))
         .insert(ExternalForce {
             force: Vec3::ZERO,
             torque: Vec3::ZERO,
@@ -115,83 +105,4 @@ fn spawn_player(mut commands: Commands, asset_server: Res<AssetServer>) {
             bomb_delay: Timer::new(Duration::from_millis(350), TimerMode::Once),
             bomb_range: 1.0,
         });
-}
-
-/// "If the space bar is pressed, spawn a bomb at the player's position."
-///
-/// The first thing we do is get a mutable reference to the player's transform. We do this by creating a
-/// `Query` that looks for entities with the `Player` component and a mutable `Transform` component. We
-/// then use the `single_mut` method to get a mutable reference to the first entity that matches the
-/// query
-///
-/// Arguments:
-///
-/// * `commands`: Commands - This is the resource that allows us to spawn entities.
-/// * `meshes`: ResMut<Assets<Mesh>>,
-/// * `materials`: ResMut<Assets<StandardMaterial>>,
-/// * `player_query`: Query<(&Player, &mut Transform)>
-/// * `keyboard`: Res<Input<KeyCode>>
-fn drop_bomb(
-    mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
-    mut player_query: Query<(&mut Player, &mut Transform)>,
-    keyboard: Res<Input<KeyCode>>,
-    time: Res<Time>,
-) {
-    let (mut player, mut player_transform) = player_query.single_mut();
-    let player_pos = player_transform.clone().translation;
-    player.bomb_delay.tick(time.delta());
-    if player.bomb_delay.finished() && keyboard.just_pressed(KeyCode::Space) {
-        commands
-            .spawn(PbrBundle {
-                mesh: meshes.add(
-                    Mesh::try_from(shape::Icosphere {
-                        radius: 0.2,
-                        subdivisions: 32,
-                    })
-                    .unwrap(),
-                ),
-                material: materials.add(StandardMaterial {
-                    base_color: Color::hex("000000").unwrap(),
-                    ..default()
-                }),
-                transform: Transform {
-                    translation: Vec3::new(player_pos.x, player_pos.y + 0.1, player_pos.z),
-                    ..default()
-                },
-                ..default()
-            })
-            .insert(Name::new("Bomb"))
-            .insert(Bomb {
-                explode_timer: Timer::new(Duration::from_secs(3), TimerMode::Once),
-            })
-            .insert(Collider::cuboid(player.bomb_range, 0.1, 0.1))
-            .insert(Sensor);
-        player.bomb_delay = Timer::new(Duration::from_millis(350), TimerMode::Once);
-    }
-}
-
-fn explode_bomb(
-    mut commands: Commands,
-    mut bomb_query: Query<(Entity, &mut Bomb), Without<Breakable>>,
-    time: Res<Time>,
-) {
-    for (bomb_entity, mut bomb) in bomb_query.iter_mut() {
-        // timers gotta be ticked, to work
-        bomb.explode_timer.tick(time.delta());
-
-        //Miliseconds before explode, add collider to despawn breakables
-        if bomb.explode_timer.percent_left() <= 0.01 {
-            commands
-                .entity(bomb_entity)
-                .insert(ActiveCollisionTypes::KINEMATIC_STATIC)
-                .insert(ActiveEvents::COLLISION_EVENTS);
-        };
-        // if it finished, despawn the bomb
-        if bomb.explode_timer.finished() {
-            //Despawn bomb
-            commands.entity(bomb_entity).despawn_recursive();
-        }
-    }
 }
