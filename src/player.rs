@@ -14,17 +14,36 @@ pub struct PlayerPlugin;
 pub struct Player {
     speed: f32,
 }
+#[derive(Component, Inspectable)]
+pub struct Bomb {
+    range: f32,
+}
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugin(RapierPhysicsPlugin::<NoUserData>::default())
             .add_plugin(RapierDebugRenderPlugin::default())
             .add_startup_system(spawn_player)
-            .add_system(player_movement);
+            .add_system(player_movement)
+            .add_system(drop_bomb);
         // .add_system(rotate_system);
     }
 }
 
+/// "If the player is pressing W, move the player forward. If the player is pressing S, move the player
+/// backward. If the player is pressing A, move the player left. If the player is pressing D, move the
+/// player right."
+///
+/// The first thing we do is get the player and transform components from the player_query. We need the
+/// player component to get the player's speed, and we need the transform component to move the player
+///
+/// Arguments:
+///
+/// * `controllers`: Query<&mut KinematicCharacterController>
+/// * `player_query`: Query<(&Player, &mut Transform)>
+/// * `keyboard`: Res<Input<KeyCode>>
+/// * `time`: Res<Time> - This is the time resource. It's a resource because it's a global value that
+/// can be accessed from anywhere.
 fn player_movement(
     mut controllers: Query<&mut KinematicCharacterController>,
     mut player_query: Query<(&Player, &mut Transform)>,
@@ -57,6 +76,12 @@ fn player_movement(
     }
 }
 
+/// We spawn a cube, give it a rigid body, a collider, a name, and a player component
+///
+/// Arguments:
+///
+/// * `commands`: Commands - This is the command buffer that we will use to spawn the player.
+/// * `asset_server`: Res<AssetServer>
 fn spawn_player(mut commands: Commands, asset_server: Res<AssetServer>) {
     // cube
     commands
@@ -79,4 +104,52 @@ fn spawn_player(mut commands: Commands, asset_server: Res<AssetServer>) {
         .insert(Restitution::coefficient(0.1))
         .insert(Name::new("Player"))
         .insert(Player { speed: 1.0 });
+}
+
+/// "If the space bar is pressed, spawn a bomb at the player's position."
+///
+/// The first thing we do is get a mutable reference to the player's transform. We do this by creating a
+/// `Query` that looks for entities with the `Player` component and a mutable `Transform` component. We
+/// then use the `single_mut` method to get a mutable reference to the first entity that matches the
+/// query
+///
+/// Arguments:
+///
+/// * `commands`: Commands - This is the resource that allows us to spawn entities.
+/// * `meshes`: ResMut<Assets<Mesh>>,
+/// * `materials`: ResMut<Assets<StandardMaterial>>,
+/// * `player_query`: Query<(&Player, &mut Transform)>
+/// * `keyboard`: Res<Input<KeyCode>>
+fn drop_bomb(
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+    mut player_query: Query<(&Player, &mut Transform)>,
+    keyboard: Res<Input<KeyCode>>,
+) {
+    let (_, mut player_transform) = player_query.single_mut();
+    let player_pos = player_transform.clone().translation;
+    if keyboard.just_released(KeyCode::Space) {
+        commands
+            .spawn(PbrBundle {
+                mesh: meshes.add(
+                    Mesh::try_from(shape::Icosphere {
+                        radius: 0.2,
+                        subdivisions: 32,
+                    })
+                    .unwrap(),
+                ),
+                material: materials.add(StandardMaterial {
+                    base_color: Color::hex("000000").unwrap(),
+                    ..default()
+                }),
+                transform: Transform {
+                    translation: Vec3::new(player_pos.x, player_pos.y + 0.1, player_pos.z),
+                    ..default()
+                },
+                ..default()
+            })
+            .insert(Name::new("Bomb"))
+            .insert(Bomb { range: 2. });
+    }
 }

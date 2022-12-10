@@ -37,6 +37,20 @@ impl Plugin for MapPlugin {
         app.add_startup_system(create_basic_map);
     }
 }
+/// If the object needs a floor, spawn a floor and the object. If it's a floor, spawn a floor. If it's a
+/// custom object, spawn a custom object. If it's a normal object, spawn a normal object
+///
+/// Arguments:
+///
+/// * `commands`: The commands that will be used to spawn the entity.
+/// * `asset_server`: The asset server that we created in the previous section.
+/// * `_object_types`: This is a HashMap of all the objects that can be spawned.
+/// * `char_key`: The key of the object to be spawned.
+/// * `translation`: The position of the object
+///
+/// Returns:
+///
+/// Entity
 pub fn spawn_map_object(
     commands: &mut Commands,
     asset_server: &AssetServer,
@@ -92,6 +106,20 @@ pub fn spawn_map_object(
         translation,
     );
 }
+/// It spawns an object with a collider and rigid body, and if it's interactive, it also adds a sensor
+/// and collision events
+///
+/// Arguments:
+///
+/// * `commands`: &mut Commands,
+/// * `object_props`: The object properties that we want to spawn
+/// * `asset_server`: The asset server that will load the object's model
+/// * `default_scale`: The default scale of the object.
+/// * `translation`: The position of the object
+///
+/// Returns:
+///
+/// The entity id of the spawned object
 fn spawn_object(
     commands: &mut Commands,
     object_props: &ObjectProps,
@@ -137,6 +165,21 @@ fn spawn_object(
         .insert(Name::new(object_props.name.clone()))
         .id()
 }
+/// It spawns a floor entity with the given properties
+///
+/// Arguments:
+///
+/// * `commands`: &mut Commands,
+/// * `object_props`: This is the object properties that we get from the JSON file.
+/// * `asset_server`: The asset server that will load the object.
+/// * `default_scale`: The default scale of the object.
+/// * `translation`: Vec3,
+/// * `default_floor`: If true, the floor will be a default floor. If false, the floor will be the floor
+/// specified in the object_props.
+///
+/// Returns:
+///
+/// Entity
 fn spawn_floor(
     commands: &mut Commands,
     object_props: &ObjectProps,
@@ -165,6 +208,19 @@ fn spawn_floor(
         .insert(Name::new(format!("Floor#{}", object_props.name.clone())))
         .id()
 }
+
+/// It spawns a custom object, which is a 3D model that is loaded from a file
+///
+/// Arguments:
+///
+/// * `commands`: &mut Commands,
+/// * `object_props`: This is the object properties that we're going to use to spawn the object.
+/// * `asset_server`: The asset server that will load the object
+/// * `translation`: The position of the object
+///
+/// Returns:
+///
+/// The entity id of the spawned object
 fn spawn_custom(
     commands: &mut Commands,
     object_props: &ObjectProps,
@@ -190,6 +246,13 @@ fn spawn_custom(
         .id()
 }
 
+/// We open the map file, create a hashmap that maps each character to a set of properties, and then for
+/// each character in the map file, we spawn an object with the properties of the character
+///
+/// Arguments:
+///
+/// * `commands`: Commands is a struct that allows you to add entities to the game.
+/// * `asset_server`: This is the asset server that we'll use to load the assets.
 fn create_basic_map(mut commands: Commands, asset_server: Res<AssetServer>) {
     let file = File::open("assets/maps/level3.txt").expect("No map found");
     //Hashmap that maps each character index and relates to the rendering

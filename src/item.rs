@@ -14,6 +14,19 @@ impl Plugin for ItemPlugin {
         app.add_system(collide_listener);
     }
 }
+/// "When a collision event occurs, check if the player is involved, and if so, despawn the item and
+/// play a sound."
+///
+/// The first thing we do is create a `Query` for the player. This is a way to get a reference to the
+/// player entity. We use the `single_mut` method to get a mutable reference to the player entity
+///
+/// Arguments:
+///
+/// * `collision_events`: EventReader<CollisionEvent>
+/// * `player_query`: Query<Entity, With<Player>>
+/// * `commands`: Commands - This is a resource that allows you to add, remove, and modify entities.
+/// * `asset_server`: Res<AssetServer> - This is a resource that allows us to load assets.
+/// * `audio`: ResMut<DynamicAudioChannels>
 pub fn collide_listener(
     mut collision_events: EventReader<CollisionEvent>,
     mut player_query: Query<Entity, With<Player>>,
@@ -46,6 +59,20 @@ pub fn collide_listener(
         }
     }
 }
+
+/// "When an item collides with the player, despawn the item, play a sound, and give the player an
+/// upgrade."
+///
+/// The first thing we do is despawn the item. We do this by getting the `commands` resource and calling
+/// `.entity(item_entity)` to get the `EntityCommandBuffer` for the item. Then we call
+/// `.despawn_recursive()` to despawn the item and all of its children
+///
+/// Arguments:
+///
+/// * `commands`: &mut Commands,
+/// * `item_entity`: The entity of the item that was picked up
+/// * `asset_server`: This is the asset server that we created in the previous section.
+/// * `audio`: &DynamicAudioChannel - This is the audio channel that we created in the previous step.
 pub fn item_collision(
     commands: &mut Commands,
     item_entity: Entity,
