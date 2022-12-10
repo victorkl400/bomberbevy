@@ -1,9 +1,9 @@
 R#BB$BB$BB$BB$BB$BB$BB$BB#R
 #                         #
-B                         B
-$             C           $
-B     B   !               B
-$                         $
+B @                       B
+$ B           C           $
+B @   B   !               B
+$ B                       $
 B    !!!!!!               B
 $     !    BBBBBB         $
 B        C       B        B

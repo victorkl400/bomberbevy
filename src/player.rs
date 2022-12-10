@@ -70,7 +70,7 @@ fn spawn_player(mut commands: Commands, asset_server: Res<AssetServer>) {
             ..default()
         })
         .insert(RigidBody::Dynamic)
-        .insert(Collider::cuboid(0.4, 0.1, 0.4))
+        .insert(Collider::cuboid(0.25, 0.1, 0.4))
         .insert(ExternalForce {
             force: Vec3::ZERO,
             torque: Vec3::ZERO,

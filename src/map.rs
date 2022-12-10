@@ -16,7 +16,12 @@ pub struct MapPlugin;
 
 #[derive(Component, Inspectable)]
 pub struct ObjectCollider {}
-
+#[derive(Component, Clone, Debug, Serialize, Deserialize)]
+pub struct CustomProps {
+    pub scale: Vec3,
+    pub rotation: Quat,
+    pub sum_translation: Vec3,
+}
 #[derive(Component, Clone, Debug, Serialize, Deserialize)]
 pub struct ObjectProps {
     pub name: String,
@@ -24,6 +29,7 @@ pub struct ObjectProps {
     pub path: String,
     pub is_floor: bool,
     pub interactive: bool,
+    pub custom: Option<CustomProps>,
 }
 
 impl Plugin for MapPlugin {
@@ -53,6 +59,9 @@ pub fn spawn_map_object(
             translation,
             true,
         );
+        if object_props.custom.is_some() {
+            return spawn_custom(commands, object_props, asset_server, translation);
+        }
         //Spawn Object
         return spawn_object(
             commands,
@@ -121,7 +130,7 @@ fn spawn_object(
             .insert(Collider::cuboid(0.3, 0.3, 0.3));
     } else {
         //If a normal object, default collider should be okay
-        object_spawn.insert(Collider::cuboid(0.5, 0.5, 0.3));
+        object_spawn.insert(Collider::cuboid(0.4, 0.4, 0.4));
     }
     object_spawn
         .insert(RigidBody::Fixed)
@@ -156,6 +165,31 @@ fn spawn_floor(
         .insert(Name::new(format!("Floor#{}", object_props.name.clone())))
         .id()
 }
+fn spawn_custom(
+    commands: &mut Commands,
+    object_props: &ObjectProps,
+    asset_server: &AssetServer,
+    translation: Vec3,
+) -> Entity {
+    let custom_attributes = object_props.custom.clone().unwrap();
+    let mut object_spawn = commands.spawn(SceneBundle {
+        scene: asset_server.load(object_props.path.to_owned()),
+        transform: Transform {
+            translation: translation + custom_attributes.sum_translation,
+            scale: custom_attributes.scale,
+            ..default()
+        },
+        ..default()
+    });
+
+    //Spawn the custom object
+    object_spawn
+        .insert(Collider::cuboid(0.5, 0.5, 0.3))
+        .insert(RigidBody::Fixed)
+        .insert(Name::new(object_props.name.clone()))
+        .id()
+}
+
 fn create_basic_map(mut commands: Commands, asset_server: Res<AssetServer>) {
     let file = File::open("assets/maps/level3.txt").expect("No map found");
     //Hashmap that maps each character index and relates to the rendering
@@ -167,6 +201,7 @@ fn create_basic_map(mut commands: Commands, asset_server: Res<AssetServer>) {
                 is_floor: true,
                 interactive: false,
                 path: "objects/tile.glb#Scene0".to_owned(),
+                custom: None,
                 name: String::from("Floor"),
             },
         ), //Floor
@@ -177,6 +212,7 @@ fn create_basic_map(mut commands: Commands, asset_server: Res<AssetServer>) {
                 is_floor: false,
                 interactive: false,
                 path: "objects/towerSquare_bottomC.glb#Scene0".to_owned(),
+                custom: None,
                 name: String::from("Wall"),
             },
         ), //Wall
@@ -187,6 +223,7 @@ fn create_basic_map(mut commands: Commands, asset_server: Res<AssetServer>) {
                 is_floor: false,
                 interactive: false,
                 path: "objects/towerSquare_middleA.glb#Scene0".to_owned(),
+                custom: None,
                 name: String::from("Block"),
             },
         ), //Block
@@ -197,6 +234,7 @@ fn create_basic_map(mut commands: Commands, asset_server: Res<AssetServer>) {
                 is_floor: false,
                 interactive: true,
                 path: "objects/sandwich.glb#Scene0".to_owned(),
+                custom: None,
                 name: String::from("Coin"),
             },
         ), //Coin
@@ -207,6 +245,7 @@ fn create_basic_map(mut commands: Commands, asset_server: Res<AssetServer>) {
                 is_floor: false,
                 interactive: false,
                 path: "objects/towerSquare_sampleE.glb#Scene0".to_owned(),
+                custom: None,
                 name: String::from("RoundedWall"),
             },
         ), //Rounded Wall
@@ -217,6 +256,7 @@ fn create_basic_map(mut commands: Commands, asset_server: Res<AssetServer>) {
                 is_floor: true,
                 interactive: false,
                 path: "objects/tile_dirt.glb#Scene0".to_owned(),
+                custom: None,
                 name: String::from("FloorDirt"),
             },
         ), //Floor Dirt
@@ -227,6 +267,7 @@ fn create_basic_map(mut commands: Commands, asset_server: Res<AssetServer>) {
                 is_floor: false,
                 interactive: false,
                 path: "objects/towerSquare_sampleA.glb#Scene0".to_owned(),
+                custom: None,
                 name: String::from("TowerA"),
             },
         ), //TowerA
@@ -237,6 +278,7 @@ fn create_basic_map(mut commands: Commands, asset_server: Res<AssetServer>) {
                 is_floor: false,
                 interactive: false,
                 path: "objects/towerSquare_bottomC.glb#Scene0".to_owned(),
+                custom: None,
                 name: String::from("TowerC"),
             },
         ), //TowerC
@@ -247,7 +289,23 @@ fn create_basic_map(mut commands: Commands, asset_server: Res<AssetServer>) {
                 is_floor: true,
                 interactive: false,
                 path: "objects/tile_straight.glb#Scene0".to_owned(),
+                custom: None,
                 name: String::from("FloorStraight"),
+            },
+        ), //FloorStraight
+        (
+            64,
+            ObjectProps {
+                add_floor: true,
+                is_floor: false,
+                interactive: false,
+                path: "objects/workbench.glb#Scene0".to_owned(),
+                custom: Some(CustomProps {
+                    scale: Vec3::new(0.5, 0.5, 0.5),
+                    rotation: Quat::from_rotation_y(0.0),
+                    sum_translation: Vec3::new(0.0, 0.2, 0.0),
+                }),
+                name: String::from("Workbench"),
             },
         ), //FloorStraight
     ]);
