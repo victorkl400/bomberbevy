@@ -1,5 +1,6 @@
+use std::time::Duration;
+
 use bevy::prelude::*;
-use bevy_inspector_egui::Inspectable;
 use bevy_rapier3d::{
     prelude::{
         Collider, ExternalForce, KinematicCharacterController, NoUserData, RapierPhysicsPlugin,
@@ -8,24 +9,29 @@ use bevy_rapier3d::{
     render::RapierDebugRenderPlugin,
 };
 
+use crate::map::Breakable;
+
 pub struct PlayerPlugin;
 
-#[derive(Component, Inspectable)]
+#[derive(Component)]
 pub struct Player {
     speed: f32,
+    bomb_delay: Timer,
 }
-#[derive(Component, Inspectable)]
+#[derive(Component)]
 pub struct Bomb {
     range: f32,
+    explode_timer: Timer,
 }
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugin(RapierPhysicsPlugin::<NoUserData>::default())
-            .add_plugin(RapierDebugRenderPlugin::default())
+            // .add_plugin(RapierDebugRenderPlugin::default())
             .add_startup_system(spawn_player)
             .add_system(player_movement)
-            .add_system(drop_bomb);
+            .add_system(drop_bomb)
+            .add_system(explode_bomb);
         // .add_system(rotate_system);
     }
 }
@@ -103,7 +109,10 @@ fn spawn_player(mut commands: Commands, asset_server: Res<AssetServer>) {
         .insert(KinematicCharacterController { ..default() })
         .insert(Restitution::coefficient(0.1))
         .insert(Name::new("Player"))
-        .insert(Player { speed: 1.0 });
+        .insert(Player {
+            speed: 1.0,
+            bomb_delay: Timer::new(Duration::from_millis(250), TimerMode::Once),
+        });
 }
 
 /// "If the space bar is pressed, spawn a bomb at the player's position."
@@ -124,12 +133,14 @@ fn drop_bomb(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
-    mut player_query: Query<(&Player, &mut Transform)>,
+    mut player_query: Query<(&mut Player, &mut Transform)>,
     keyboard: Res<Input<KeyCode>>,
+    time: Res<Time>,
 ) {
-    let (_, mut player_transform) = player_query.single_mut();
+    let (mut player, mut player_transform) = player_query.single_mut();
     let player_pos = player_transform.clone().translation;
-    if keyboard.just_released(KeyCode::Space) {
+    player.bomb_delay.tick(time.delta());
+    if player.bomb_delay.finished() && keyboard.just_released(KeyCode::Space) {
         commands
             .spawn(PbrBundle {
                 mesh: meshes.add(
@@ -150,6 +161,32 @@ fn drop_bomb(
                 ..default()
             })
             .insert(Name::new("Bomb"))
-            .insert(Bomb { range: 2. });
+            .insert(Bomb {
+                range: 2.,
+                explode_timer: Timer::new(Duration::from_secs(3), TimerMode::Once),
+            });
+        player.bomb_delay = Timer::new(Duration::from_millis(250), TimerMode::Once);
+    }
+}
+
+fn explode_bomb(
+    mut commands: Commands,
+    // mut breakables: Query<(Entity, &mut Breakable, &mut Transform)>,
+    mut bomb_query: Query<(Entity, &mut Bomb, &mut Transform)>,
+    time: Res<Time>,
+) {
+    for (bomb_entity, mut bomb, bomb_transform) in bomb_query.iter_mut() {
+        // timers gotta be ticked, to work
+        bomb.explode_timer.tick(time.delta());
+
+        // if it finished, despawn the bomb
+        if bomb.explode_timer.finished() {
+            // for (breakable_entity, mut breakable, breakable_transform) in breakables.iter_mut() {
+            // breakable_transform.translation.x <= bomb_transform.translation.x + bomb.range
+
+            //Despawn bomb
+            commands.entity(bomb_entity).despawn_recursive();
+            // }
+        }
     }
 }

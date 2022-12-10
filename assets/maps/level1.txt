@@ -1,9 +1,15 @@
-RBBBBBBBBBBBBR
-B            B
-B            B
-B            B
-B            B
-B            B
-B            B
-B            B
-RBBBBBBBBBBBBR
+R#$$$$$$$$$$$$$$$$$$$$$$$#R
+#                         #
+$ @                       $
+$ B           C           $
+$ @   B   !               $
+$ B                       $
+$    !!!!!!               $
+$     !    BBBBBB         $
+$        C       B        $
+$                         $
+$                         $
+$                         $
+$                         $
+#                         #
+R#$$$$$$$$$$$$$$$$$$$$$$$#R

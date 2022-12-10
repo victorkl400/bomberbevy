@@ -15,6 +15,9 @@ use bevy_inspector_egui::Inspectable;
 pub struct MapPlugin;
 
 #[derive(Component, Inspectable)]
+pub struct Breakable;
+
+#[derive(Component, Inspectable)]
 pub struct ObjectCollider {}
 #[derive(Component, Clone, Debug, Serialize, Deserialize)]
 pub struct CustomProps {
@@ -29,6 +32,7 @@ pub struct ObjectProps {
     pub path: String,
     pub is_floor: bool,
     pub interactive: bool,
+    pub breakable: bool,
     pub custom: Option<CustomProps>,
 }
 
@@ -237,7 +241,9 @@ fn spawn_custom(
         },
         ..default()
     });
-
+    if object_props.breakable {
+        object_spawn.insert(Breakable);
+    }
     //Spawn the custom object
     object_spawn
         .insert(Collider::cuboid(0.5, 0.5, 0.3))
@@ -254,7 +260,7 @@ fn spawn_custom(
 /// * `commands`: Commands is a struct that allows you to add entities to the game.
 /// * `asset_server`: This is the asset server that we'll use to load the assets.
 fn create_basic_map(mut commands: Commands, asset_server: Res<AssetServer>) {
-    let file = File::open("assets/maps/level3.txt").expect("No map found");
+    let file = File::open("assets/maps/level1.txt").expect("No map found");
     //Hashmap that maps each character index and relates to the rendering
     let object_types = HashMap::from([
         (
@@ -265,6 +271,7 @@ fn create_basic_map(mut commands: Commands, asset_server: Res<AssetServer>) {
                 interactive: false,
                 path: "objects/tile.glb#Scene0".to_owned(),
                 custom: None,
+                breakable: false,
                 name: String::from("Floor"),
             },
         ), //Floor
@@ -274,8 +281,9 @@ fn create_basic_map(mut commands: Commands, asset_server: Res<AssetServer>) {
                 add_floor: false,
                 is_floor: false,
                 interactive: false,
-                path: "objects/towerSquare_bottomC.glb#Scene0".to_owned(),
+                path: "objects/towerSquare_sampleE.glb#Scene0".to_owned(),
                 custom: None,
+                breakable: false,
                 name: String::from("Wall"),
             },
         ), //Wall
@@ -287,6 +295,7 @@ fn create_basic_map(mut commands: Commands, asset_server: Res<AssetServer>) {
                 interactive: false,
                 path: "objects/towerSquare_middleA.glb#Scene0".to_owned(),
                 custom: None,
+                breakable: false,
                 name: String::from("Block"),
             },
         ), //Block
@@ -298,6 +307,7 @@ fn create_basic_map(mut commands: Commands, asset_server: Res<AssetServer>) {
                 interactive: true,
                 path: "objects/sandwich.glb#Scene0".to_owned(),
                 custom: None,
+                breakable: false,
                 name: String::from("Coin"),
             },
         ), //Coin
@@ -309,6 +319,7 @@ fn create_basic_map(mut commands: Commands, asset_server: Res<AssetServer>) {
                 interactive: false,
                 path: "objects/towerSquare_sampleE.glb#Scene0".to_owned(),
                 custom: None,
+                breakable: false,
                 name: String::from("RoundedWall"),
             },
         ), //Rounded Wall
@@ -320,6 +331,7 @@ fn create_basic_map(mut commands: Commands, asset_server: Res<AssetServer>) {
                 interactive: false,
                 path: "objects/tile_dirt.glb#Scene0".to_owned(),
                 custom: None,
+                breakable: false,
                 name: String::from("FloorDirt"),
             },
         ), //Floor Dirt
@@ -331,6 +343,7 @@ fn create_basic_map(mut commands: Commands, asset_server: Res<AssetServer>) {
                 interactive: false,
                 path: "objects/towerSquare_sampleA.glb#Scene0".to_owned(),
                 custom: None,
+                breakable: false,
                 name: String::from("TowerA"),
             },
         ), //TowerA
@@ -340,8 +353,9 @@ fn create_basic_map(mut commands: Commands, asset_server: Res<AssetServer>) {
                 add_floor: false,
                 is_floor: false,
                 interactive: false,
-                path: "objects/towerSquare_bottomC.glb#Scene0".to_owned(),
+                path: "objects/towerSquare_sampleE.glb#Scene0".to_owned(),
                 custom: None,
+                breakable: false,
                 name: String::from("TowerC"),
             },
         ), //TowerC
@@ -353,6 +367,7 @@ fn create_basic_map(mut commands: Commands, asset_server: Res<AssetServer>) {
                 interactive: false,
                 path: "objects/tile_straight.glb#Scene0".to_owned(),
                 custom: None,
+                breakable: false,
                 name: String::from("FloorStraight"),
             },
         ), //FloorStraight
@@ -368,6 +383,7 @@ fn create_basic_map(mut commands: Commands, asset_server: Res<AssetServer>) {
                     rotation: Quat::from_rotation_y(0.0),
                     sum_translation: Vec3::new(0.0, 0.2, 0.0),
                 }),
+                breakable: true,
                 name: String::from("Workbench"),
             },
         ), //FloorStraight
