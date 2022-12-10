@@ -10,6 +10,7 @@ use simula_camera::{flycam::*, orbitcam::*};
 use state::GameState;
 
 pub mod audio;
+pub mod constants;
 pub mod item;
 pub mod map;
 pub mod player;

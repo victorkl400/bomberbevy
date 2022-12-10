@@ -1,7 +1,6 @@
 use bevy_rapier3d::{
     geometry::Collider,
     prelude::{ActiveEvents, *},
-    rapier::prelude::{ColliderBuilder, ColliderFlags, ColliderShape},
 };
 use serde::{Deserialize, Serialize};
 use std::{
@@ -11,6 +10,8 @@ use std::{
 
 use bevy::{prelude::*, utils::HashMap};
 use bevy_inspector_egui::Inspectable;
+
+use crate::item::InteractiveItem;
 
 pub struct MapPlugin;
 
@@ -157,6 +158,7 @@ fn spawn_object(
         //If interactive object, add collision events and make the collider smaller
         object_spawn
             .insert(Sensor)
+            .insert(InteractiveItem)
             .insert(ActiveCollisionTypes::KINEMATIC_STATIC)
             .insert(ActiveEvents::COLLISION_EVENTS)
             .insert(Collider::cuboid(0.3, 0.3, 0.3));
@@ -242,12 +244,24 @@ fn spawn_custom(
         ..default()
     });
     if object_props.breakable {
-        object_spawn.insert(Breakable);
+        object_spawn
+            .insert(Breakable)
+            .insert(RigidBody::KinematicPositionBased);
+    }
+    if object_props.interactive {
+        //If interactive object, add collision events and make the collider smaller
+        object_spawn
+            .insert(Sensor)
+            .insert(InteractiveItem)
+            .insert(ActiveCollisionTypes::KINEMATIC_STATIC)
+            .insert(ActiveEvents::COLLISION_EVENTS)
+            .insert(Collider::cuboid(0.3, 0.3, 0.3))
+            .insert(RigidBody::Fixed);
+    } else {
+        object_spawn.insert(Collider::cuboid(0.5, 0.5, 0.3));
     }
     //Spawn the custom object
     object_spawn
-        .insert(Collider::cuboid(0.5, 0.5, 0.3))
-        .insert(RigidBody::Fixed)
         .insert(Name::new(object_props.name.clone()))
         .id()
 }
@@ -260,7 +274,7 @@ fn spawn_custom(
 /// * `commands`: Commands is a struct that allows you to add entities to the game.
 /// * `asset_server`: This is the asset server that we'll use to load the assets.
 fn create_basic_map(mut commands: Commands, asset_server: Res<AssetServer>) {
-    let file = File::open("assets/maps/level1.txt").expect("No map found");
+    let file = File::open("assets/maps/test.txt").expect("No map found");
     //Hashmap that maps each character index and relates to the rendering
     let object_types = HashMap::from([
         (
@@ -306,8 +320,12 @@ fn create_basic_map(mut commands: Commands, asset_server: Res<AssetServer>) {
                 is_floor: false,
                 interactive: true,
                 path: "objects/sandwich.glb#Scene0".to_owned(),
-                custom: None,
-                breakable: false,
+                custom: Some(CustomProps {
+                    scale: Vec3::new(0.8, 0.4, 0.8),
+                    rotation: Quat::from_rotation_y(0.0),
+                    sum_translation: Vec3::new(0.0, 0.5, 0.0),
+                }),
+                breakable: true,
                 name: String::from("Coin"),
             },
         ), //Coin

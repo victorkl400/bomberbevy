@@ -2,14 +2,16 @@ use std::time::Duration;
 
 use bevy::prelude::*;
 use bevy_rapier3d::{
+    na::ComplexField,
     prelude::{
-        Collider, ExternalForce, KinematicCharacterController, NoUserData, RapierPhysicsPlugin,
-        Restitution, RigidBody,
+        ActiveCollisionTypes, ActiveEvents, Collider, ExternalForce, KinematicCharacterController,
+        NoUserData, RapierPhysicsPlugin, Restitution, RigidBody, Sensor,
     },
+    rapier::prelude::{Isometry, SharedShape},
     render::RapierDebugRenderPlugin,
 };
 
-use crate::map::Breakable;
+use crate::{item::InteractiveItem, map::Breakable};
 
 pub struct PlayerPlugin;
 
@@ -17,22 +19,21 @@ pub struct PlayerPlugin;
 pub struct Player {
     speed: f32,
     bomb_delay: Timer,
+    bomb_range: f32,
 }
 #[derive(Component)]
 pub struct Bomb {
-    range: f32,
     explode_timer: Timer,
 }
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugin(RapierPhysicsPlugin::<NoUserData>::default())
-            // .add_plugin(RapierDebugRenderPlugin::default())
+            .add_plugin(RapierDebugRenderPlugin::default())
             .add_startup_system(spawn_player)
             .add_system(player_movement)
             .add_system(drop_bomb)
             .add_system(explode_bomb);
-        // .add_system(rotate_system);
     }
 }
 
@@ -111,7 +112,8 @@ fn spawn_player(mut commands: Commands, asset_server: Res<AssetServer>) {
         .insert(Name::new("Player"))
         .insert(Player {
             speed: 1.0,
-            bomb_delay: Timer::new(Duration::from_millis(250), TimerMode::Once),
+            bomb_delay: Timer::new(Duration::from_millis(350), TimerMode::Once),
+            bomb_range: 1.0,
         });
 }
 
@@ -140,7 +142,7 @@ fn drop_bomb(
     let (mut player, mut player_transform) = player_query.single_mut();
     let player_pos = player_transform.clone().translation;
     player.bomb_delay.tick(time.delta());
-    if player.bomb_delay.finished() && keyboard.just_released(KeyCode::Space) {
+    if player.bomb_delay.finished() && keyboard.just_pressed(KeyCode::Space) {
         commands
             .spawn(PbrBundle {
                 mesh: meshes.add(
@@ -162,31 +164,34 @@ fn drop_bomb(
             })
             .insert(Name::new("Bomb"))
             .insert(Bomb {
-                range: 2.,
                 explode_timer: Timer::new(Duration::from_secs(3), TimerMode::Once),
-            });
-        player.bomb_delay = Timer::new(Duration::from_millis(250), TimerMode::Once);
+            })
+            .insert(Collider::cuboid(player.bomb_range, 0.1, 0.1))
+            .insert(Sensor);
+        player.bomb_delay = Timer::new(Duration::from_millis(350), TimerMode::Once);
     }
 }
 
 fn explode_bomb(
     mut commands: Commands,
-    // mut breakables: Query<(Entity, &mut Breakable, &mut Transform)>,
-    mut bomb_query: Query<(Entity, &mut Bomb, &mut Transform)>,
+    mut bomb_query: Query<(Entity, &mut Bomb), Without<Breakable>>,
     time: Res<Time>,
 ) {
-    for (bomb_entity, mut bomb, bomb_transform) in bomb_query.iter_mut() {
+    for (bomb_entity, mut bomb) in bomb_query.iter_mut() {
         // timers gotta be ticked, to work
         bomb.explode_timer.tick(time.delta());
 
+        //Miliseconds before explode, add collider to despawn breakables
+        if bomb.explode_timer.percent_left() <= 0.01 {
+            commands
+                .entity(bomb_entity)
+                .insert(ActiveCollisionTypes::KINEMATIC_STATIC)
+                .insert(ActiveEvents::COLLISION_EVENTS);
+        };
         // if it finished, despawn the bomb
         if bomb.explode_timer.finished() {
-            // for (breakable_entity, mut breakable, breakable_transform) in breakables.iter_mut() {
-            // breakable_transform.translation.x <= bomb_transform.translation.x + bomb.range
-
             //Despawn bomb
             commands.entity(bomb_entity).despawn_recursive();
-            // }
         }
     }
 }

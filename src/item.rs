@@ -1,48 +1,64 @@
-use bevy::prelude::{
-    App, AssetServer, Commands, DespawnRecursiveExt, Entity, EventReader, Plugin, Query, Res,
-    ResMut, With,
+use bevy::{
+    prelude::{
+        App, AssetServer, Commands, Component, DespawnRecursiveExt, Entity, EventReader, Plugin,
+        Quat, Query, Res, ResMut, Transform, With, Without,
+    },
+    time::Time,
 };
 use bevy_kira_audio::{DynamicAudioChannel, DynamicAudioChannels};
 use bevy_rapier3d::prelude::CollisionEvent;
 
-use crate::{audio::play_sfx, player::Player};
+use crate::{
+    audio::play_sfx,
+    map::Breakable,
+    player::{Bomb, Player},
+};
 
+#[derive(Component)]
+pub struct InteractiveItem;
 pub struct ItemPlugin;
 
 impl Plugin for ItemPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system(collide_listener);
+        app.add_system(player_collision_listener)
+            .add_system(animate_interactive_items)
+            .add_system(explosion_collision_listener);
     }
 }
-/// "When a collision event occurs, check if the player is involved, and if so, despawn the item and
-/// play a sound."
-///
-/// The first thing we do is create a `Query` for the player. This is a way to get a reference to the
-/// player entity. We use the `single_mut` method to get a mutable reference to the player entity
-///
-/// Arguments:
-///
-/// * `collision_events`: EventReader<CollisionEvent>
-/// * `player_query`: Query<Entity, With<Player>>
-/// * `commands`: Commands - This is a resource that allows you to add, remove, and modify entities.
-/// * `asset_server`: Res<AssetServer> - This is a resource that allows us to load assets.
-/// * `audio`: ResMut<DynamicAudioChannels>
-pub fn collide_listener(
+
+pub fn player_collision_listener(
     mut collision_events: EventReader<CollisionEvent>,
     mut player_query: Query<Entity, With<Player>>,
+    mut interactive_query: Query<(Entity, &InteractiveItem), Without<Player>>,
     mut commands: Commands,
     asset_server: Res<AssetServer>,
     mut audio: ResMut<DynamicAudioChannels>,
 ) {
+    //Iterate over collision events
     for collision_event in collision_events.iter() {
         match collision_event {
             CollisionEvent::Started(entity_1, entity_2, _flags) => {
+                //If found an event, check if envolves the player
                 let player_entity = player_query.single_mut();
+                let has_player_collide = player_entity == *entity_1 || player_entity == *entity_2;
+
+                //If event is not related to player, ignore it, another
+                //listener should handle it
+                if !has_player_collide {
+                    break;
+                }
                 let item_entity = if player_entity == *entity_1 {
                     entity_2
                 } else {
                     entity_1
                 };
+
+                let is_interactive_item = interactive_query.contains(*item_entity);
+
+                if !is_interactive_item {
+                    break;
+                }
+
                 // Collision IN
                 println!("Player has collided with item {:?} ", item_entity);
                 // Despawn item
@@ -60,6 +76,57 @@ pub fn collide_listener(
     }
 }
 
+pub fn explosion_collision_listener(
+    mut collision_events: EventReader<CollisionEvent>,
+    bomb_query: Query<Entity, With<Bomb>>,
+    breakable_query: Query<(Entity, &Breakable), Without<Bomb>>,
+    mut commands: Commands,
+) {
+    //Iterate over collision events
+    for collision_event in collision_events.iter() {
+        match collision_event {
+            CollisionEvent::Started(entity_1, entity_2, _flags) => {
+                //If found an event, check if envolves the bomb explosion
+                let has_bomb_collide =
+                    bomb_query.contains(*entity_1) || bomb_query.contains(*entity_2);
+
+                //If found an event, check if envolves the breakable
+                let has_breakable_collide =
+                    breakable_query.contains(*entity_1) || breakable_query.contains(*entity_2);
+
+                println!(
+                    "Bomb collided? {} , Breakable collided? {}",
+                    has_bomb_collide, has_breakable_collide
+                );
+
+                //If event is not related to bomb and breakables, ignore it, another
+                //listener should handle it
+                if !has_bomb_collide || !has_breakable_collide {
+                    break;
+                }
+
+                //Get the breakable entity
+                let breakable_entity = if breakable_query.contains(*entity_1) {
+                    entity_1
+                } else {
+                    entity_2
+                };
+                //Get the bomb entity
+                let bomb_entity = if bomb_query.contains(*entity_1) {
+                    entity_1
+                } else {
+                    entity_2
+                };
+
+                //Despawn breakable
+                commands.entity(*breakable_entity).despawn_recursive();
+            }
+            CollisionEvent::Stopped(_e1, _e2, _flags) => {
+                // Collision OUT
+            }
+        }
+    }
+}
 /// "When an item collides with the player, despawn the item, play a sound, and give the player an
 /// upgrade."
 ///
@@ -85,4 +152,14 @@ pub fn item_collision(
 
     play_sfx(audio, asset_server)
     //Give Player Upgrade
+}
+
+fn animate_interactive_items(
+    mut commands: Commands,
+    mut item_query: Query<(&mut InteractiveItem, &mut Transform)>,
+    time: Res<Time>,
+) {
+    for (interactive_item, mut item_transform) in item_query.iter_mut() {
+        item_transform.rotation = Quat::from_rotation_y(time.elapsed_seconds() as f32);
+    }
 }
