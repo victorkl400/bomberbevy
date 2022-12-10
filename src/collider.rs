@@ -1,20 +1,20 @@
-use bevy::{
-    prelude::{
-        App, AssetServer, Commands, Component, DespawnRecursiveExt, Entity, EventReader, Plugin,
-        Quat, Query, Res, ResMut, Transform, With, Without,
-    },
-    time::Time,
+use bevy::prelude::{
+    App, AssetServer, Commands, Component, DespawnRecursiveExt, Entity, EventReader, Plugin, Query,
+    Res, ResMut, With, Without,
 };
 use bevy_kira_audio::{DynamicAudioChannel, DynamicAudioChannels};
 use bevy_rapier3d::prelude::CollisionEvent;
 
-use crate::{audio::play_sfx, bomb::Bomb, map::Breakable, player::Player};
+use crate::{
+    audio::play_sfx, bomb::Bomb, constants::SFX_AUDIO_CHANNEL, map::Breakable, player::Player,
+    utils::animate_interactive_items,
+};
 
 #[derive(Component)]
 pub struct InteractiveItem;
-pub struct ItemPlugin;
+pub struct ColliderPlugin;
 
-impl Plugin for ItemPlugin {
+impl Plugin for ColliderPlugin {
     fn build(&self, app: &mut App) {
         app.add_system(player_collision_listener)
             .add_system(animate_interactive_items)
@@ -60,10 +60,11 @@ pub fn player_collision_listener(
                     &mut commands,
                     item_entity.to_owned(),
                     asset_server.to_owned(),
-                    audio.create_channel("sfx"),
+                    audio.create_channel(SFX_AUDIO_CHANNEL),
                     String::from("audios/sfx/get_item.ogg"),
                 );
                 //Give Player Upgrade
+                //TODO: Custom upgrades
                 player.speed += 0.1;
             }
             CollisionEvent::Stopped(_e1, _e2, _flags) => {
@@ -111,7 +112,7 @@ pub fn explosion_collision_listener(
                     &mut commands,
                     breakable_entity.to_owned(),
                     asset_server.to_owned(),
-                    audio.create_channel("sfx"),
+                    audio.create_channel(SFX_AUDIO_CHANNEL),
                     String::from("audios/sfx/bomb_explosion.ogg"),
                 )
             }
@@ -143,16 +144,6 @@ pub fn item_collision(
 ) {
     // Despawn item
     commands.entity(item_entity).despawn_recursive();
-    //Play Sound
-
+    //Play Sound Effect
     play_sfx(audio, asset_server, audio_source)
-}
-
-fn animate_interactive_items(
-    mut item_query: Query<(&mut InteractiveItem, &mut Transform)>,
-    time: Res<Time>,
-) {
-    for (_interactive_item, mut item_transform) in item_query.iter_mut() {
-        item_transform.rotation = Quat::from_rotation_y(time.elapsed_seconds() as f32);
-    }
 }

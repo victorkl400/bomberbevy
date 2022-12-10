@@ -2,8 +2,5 @@
 pub enum GameState {
     Menu,
     Loading,
-    Game,
-    Running,
-    Lost,
-    Won,
+    Gameplay,
 }

@@ -9,6 +9,8 @@ use bevy_rapier3d::{
     render::RapierDebugRenderPlugin,
 };
 
+use crate::constants::BOMB_SPAWN_DELAY;
+
 pub struct PlayerPlugin;
 
 #[derive(Component)]
@@ -21,7 +23,7 @@ pub struct Player {
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugin(RapierPhysicsPlugin::<NoUserData>::default())
-            // .add_plugin(RapierDebugRenderPlugin::default())
+            .add_plugin(RapierDebugRenderPlugin::default())
             .add_startup_system(spawn_player)
             .add_system(player_movement);
     }
@@ -102,7 +104,7 @@ fn spawn_player(mut commands: Commands, asset_server: Res<AssetServer>) {
         .insert(Name::new("Player"))
         .insert(Player {
             speed: 1.0,
-            bomb_delay: Timer::new(Duration::from_millis(350), TimerMode::Once),
+            bomb_delay: Timer::new(Duration::from_millis(BOMB_SPAWN_DELAY), TimerMode::Once),
             bomb_range: 1.0,
         });
 }

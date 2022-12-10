@@ -4,7 +4,12 @@ use bevy::prelude::*;
 use bevy_kira_audio::DynamicAudioChannels;
 use bevy_rapier3d::prelude::{ActiveCollisionTypes, ActiveEvents, Collider, Sensor};
 
-use crate::{audio::play_sfx, map::Breakable, player::Player};
+use crate::{
+    audio::play_sfx,
+    constants::{BOMB_EXPLOSTION_TIME, BOMB_SPAWN_DELAY, SFX_AUDIO_CHANNEL},
+    map::Breakable,
+    player::Player,
+};
 
 pub struct BombPlugin;
 
@@ -45,14 +50,15 @@ fn drop_bomb(
     let (mut player, player_transform) = player_query.single_mut();
     let player_pos = player_transform.clone().translation;
     player.bomb_delay.tick(time.delta());
+
     let bomb_explosion_range = vec![
         (
-            Vec3::new(0.0, 0.0, 0.0),
+            Vec3::ZERO,
             Quat::from_rotation_z(0.0),
             Collider::cuboid(player.bomb_range, 0.1, 0.1),
         ),
         (
-            Vec3::new(0.0, 0.0, 0.0),
+            Vec3::ZERO,
             Quat::from_rotation_z(0.0),
             Collider::cuboid(0.1, 0.1, player.bomb_range),
         ),
@@ -80,13 +86,16 @@ fn drop_bomb(
             })
             .insert(Name::new("Bomb"))
             .insert(Bomb {
-                explode_timer: Timer::new(Duration::from_secs(3), TimerMode::Once),
+                explode_timer: Timer::new(
+                    Duration::from_secs(BOMB_EXPLOSTION_TIME),
+                    TimerMode::Once,
+                ),
             })
             .insert(Collider::compound(bomb_explosion_range))
             .insert(Sensor);
-        player.bomb_delay = Timer::new(Duration::from_millis(350), TimerMode::Once);
+        player.bomb_delay = Timer::new(Duration::from_millis(BOMB_SPAWN_DELAY), TimerMode::Once);
         play_sfx(
-            audio.create_channel("sfx"),
+            audio.create_channel(SFX_AUDIO_CHANNEL),
             asset_server.to_owned(),
             String::from("audios/sfx/bomb_start.ogg"),
         );
@@ -118,7 +127,7 @@ fn explode_bomb(
 
             //Play explosion sound
             play_sfx(
-                audio.create_channel("sfx"),
+                audio.create_channel(SFX_AUDIO_CHANNEL),
                 asset_server.to_owned(),
                 String::from("audios/sfx/bomb_explosion.ogg"),
             );

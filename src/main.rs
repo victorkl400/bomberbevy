@@ -3,8 +3,8 @@ use bevy::prelude::*;
 use bevy_egui::EguiPlugin;
 use bevy_inspector_egui::WorldInspectorPlugin;
 use bomb::BombPlugin;
+use collider::ColliderPlugin;
 use constants::{HEIGHT, WIDTH};
-use item::ItemPlugin;
 use map::MapPlugin;
 use player::PlayerPlugin;
 use simula_action::ActionPlugin;
@@ -13,11 +13,12 @@ use state::GameState;
 
 pub mod audio;
 pub mod bomb;
+pub mod collider;
 pub mod constants;
-pub mod item;
 pub mod map;
 pub mod player;
 pub mod state;
+pub mod utils;
 
 fn main() {
     let mut app = App::new();
@@ -33,36 +34,42 @@ fn main() {
             },
             ..default()
         }))
+        //Game State
         .add_state(GameState::Menu)
+        //Custom Mod Import
+        .add_plugin(MapPlugin)
         .add_plugin(GameAudioPlugin)
+        .add_plugin(PlayerPlugin)
+        .add_plugin(BombPlugin)
+        .add_plugin(ColliderPlugin)
+        //External Mod Import
         .add_plugin(EguiPlugin)
         .add_plugin(ActionPlugin)
         .add_plugin(OrbitCameraPlugin)
-        .add_plugin(PlayerPlugin)
-        .add_plugin(ItemPlugin)
-        .add_plugin(BombPlugin)
         .add_plugin(FlyCameraPlugin)
-        .add_plugin(MapPlugin)
         .add_plugin(WorldInspectorPlugin::new())
-        .add_startup_system(setup)
+        //Systems
+        .add_startup_system(setup_basic_scene)
         .run();
 }
 
-fn setup(mut commands: Commands) {
-    // camera
+fn setup_basic_scene(mut commands: Commands) {
+    // Spawn Camera
+    let camera_location = Transform::from_xyz(0.0, 11.0, 7.0);
     commands.spawn(Camera3dBundle {
-        transform: Transform::from_xyz(0.0, 11.0, 7.0).looking_at(Vec3::ZERO, Vec3::Y),
+        transform: camera_location.looking_at(Vec3::ZERO, Vec3::Y),
         ..default()
     });
 
-    // light
+    // Spawn Light
+    let light_location = Transform::from_xyz(0.0, 5.0, 0.5);
     commands.spawn(PointLightBundle {
         point_light: PointLight {
             intensity: 5000.0,
             shadows_enabled: false,
             ..default()
         },
-        transform: Transform::from_xyz(0.0, 5.0, 0.5),
+        transform: light_location,
         ..default()
     });
 }
