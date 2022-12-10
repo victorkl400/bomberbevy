@@ -224,7 +224,7 @@ fn create_basic_map(mut commands: Commands, asset_server: Res<AssetServer>) {
                 interactive: false,
                 path: "objects/workbench.glb#Scene0".to_owned(),
                 custom: Some(CustomProps {
-                    scale: Vec3::new(0.5, 0.5, 0.5),
+                    scale: Vec3::new(0.5, 0.5, 0.6),
                     rotation: Quat::from_rotation_y(0.0),
                     sum_translation: Vec3::new(0.0, 0.2, 0.0),
                 }),

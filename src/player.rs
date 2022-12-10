@@ -87,7 +87,7 @@ fn spawn_player(mut commands: Commands, asset_server: Res<AssetServer>) {
         .spawn(SceneBundle {
             scene: asset_server.load("objects/enemy_ufoRedWeapon.glb#Scene0"),
             transform: Transform {
-                translation: Vec3::new(0.0, 0.4, 0.2),
+                translation: Vec3::new(0.1, 0.4, -0.1),
                 scale: Vec3::new(0.5, 0.8, 0.5),
                 ..Default::default()
             },
@@ -99,7 +99,7 @@ fn spawn_player(mut commands: Commands, asset_server: Res<AssetServer>) {
             force: Vec3::ZERO,
             torque: Vec3::ZERO,
         })
-        .insert(KinematicCharacterController { ..default() })
+        .insert(KinematicCharacterController::default())
         .insert(Restitution::coefficient(0.1))
         .insert(Name::new("Player"))
         .insert(Player {
