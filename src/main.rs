@@ -1,13 +1,15 @@
-use bevy::{prelude::*, utils::HashMap};
+use audio::GameAudioPlugin;
+use bevy::prelude::*;
 use bevy_egui::EguiPlugin;
 use bevy_inspector_egui::WorldInspectorPlugin;
 use item::ItemPlugin;
-use map::{MapPlugin, ObjectProps};
+use map::MapPlugin;
 use player::PlayerPlugin;
 use simula_action::ActionPlugin;
 use simula_camera::{flycam::*, orbitcam::*};
 use state::GameState;
 
+pub mod audio;
 pub mod item;
 pub mod map;
 pub mod player;
@@ -30,6 +32,7 @@ fn main() {
             ..default()
         }))
         .add_state(GameState::Menu)
+        .add_plugin(GameAudioPlugin)
         .add_plugin(EguiPlugin)
         .add_plugin(ActionPlugin)
         .add_plugin(OrbitCameraPlugin)
@@ -59,13 +62,4 @@ fn setup(mut commands: Commands) {
         transform: Transform::from_xyz(0.0, 5.0, 0.5),
         ..default()
     });
-    // commands.spawn(SpotLightBundle {
-    //     spot_light: SpotLight {
-    //         intensity: 5500.0,
-    //         shadows_enabled: false,
-    //         ..default()
-    //     },
-    //     transform: Transform::from_xyz(0.0, 3.0, 0.5).looking_at(Vec3::ZERO, Vec3::Y),
-    //     ..default()
-    // });
 }

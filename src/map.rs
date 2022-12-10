@@ -92,7 +92,7 @@ fn spawn_object(
 ) -> Entity {
     //Make interactive objects bigger
     let scale = if object_props.interactive {
-        default_scale //+ Vec3::new(0.5, 0.5, 0.5)
+        default_scale + Vec3::new(0.5, 0.5, 0.5)
     } else {
         default_scale
     };
@@ -113,13 +113,17 @@ fn spawn_object(
         ..default()
     });
     if object_props.interactive {
+        //If interactive object, add collision events and make the collider smaller
         object_spawn
             .insert(Sensor)
             .insert(ActiveCollisionTypes::KINEMATIC_STATIC)
-            .insert(ActiveEvents::COLLISION_EVENTS);
+            .insert(ActiveEvents::COLLISION_EVENTS)
+            .insert(Collider::cuboid(0.3, 0.3, 0.3));
+    } else {
+        //If a normal object, default collider should be okay
+        object_spawn.insert(Collider::cuboid(0.5, 0.5, 0.3));
     }
     object_spawn
-        .insert(Collider::cuboid(0.5, 0.5, 0.3))
         .insert(RigidBody::Fixed)
         .insert(Name::new(object_props.name.clone()))
         .id()
@@ -149,7 +153,7 @@ fn spawn_floor(
         })
         .insert(RigidBody::Fixed)
         .insert(Collider::cuboid(1., 0.2, 1.))
-        .insert(Name::new(object_props.name.clone()))
+        .insert(Name::new(format!("Floor#{}", object_props.name.clone())))
         .id()
 }
 fn create_basic_map(mut commands: Commands, asset_server: Res<AssetServer>) {
@@ -192,7 +196,7 @@ fn create_basic_map(mut commands: Commands, asset_server: Res<AssetServer>) {
                 add_floor: true,
                 is_floor: false,
                 interactive: true,
-                path: "objects/detail_crystal.glb#Scene0".to_owned(),
+                path: "objects/sandwich.glb#Scene0".to_owned(),
                 name: String::from("Coin"),
             },
         ), //Coin

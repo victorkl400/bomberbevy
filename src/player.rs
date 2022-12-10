@@ -2,9 +2,8 @@ use bevy::prelude::*;
 use bevy_inspector_egui::Inspectable;
 use bevy_rapier3d::{
     prelude::{
-        ActiveCollisionTypes, ActiveEvents, Collider, CollisionEvent, ExternalForce,
-        KinematicCharacterController, KinematicCharacterControllerOutput, NoUserData,
-        RapierContext, RapierPhysicsPlugin, Restitution, RigidBody,
+        Collider, ExternalForce, KinematicCharacterController, NoUserData, RapierPhysicsPlugin,
+        Restitution, RigidBody,
     },
     render::RapierDebugRenderPlugin,
 };
@@ -22,6 +21,7 @@ impl Plugin for PlayerPlugin {
             .add_plugin(RapierDebugRenderPlugin::default())
             .add_startup_system(spawn_player)
             .add_system(player_movement);
+        // .add_system(rotate_system);
     }
 }
 
@@ -61,23 +61,22 @@ fn spawn_player(mut commands: Commands, asset_server: Res<AssetServer>) {
     // cube
     commands
         .spawn(SceneBundle {
-            scene: asset_server.load("objects/enemy_ufoRed.glb#Scene0"),
+            scene: asset_server.load("objects/enemy_ufoRedWeapon.glb#Scene0"),
             transform: Transform {
-                translation: Vec3::new(0.0, 0.4, 0.0),
+                translation: Vec3::new(0.0, 0.4, 0.2),
                 scale: Vec3::new(0.57, 1., 0.57),
                 ..Default::default()
             },
             ..default()
         })
-        .insert(Name::new("Player"))
         .insert(RigidBody::Dynamic)
         .insert(Collider::cuboid(0.4, 0.1, 0.4))
-        // .insert(ActiveEvents::COLLISION_EVENTS)
         .insert(ExternalForce {
             force: Vec3::ZERO,
             torque: Vec3::ZERO,
         })
         .insert(KinematicCharacterController { ..default() })
         .insert(Restitution::coefficient(0.1))
+        .insert(Name::new("Player"))
         .insert(Player { speed: 1.0 });
 }
