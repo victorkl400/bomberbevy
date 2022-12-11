@@ -5,8 +5,8 @@ $BBB@BB@                  $
 $      B                  $
 $      @                  $
 $BBB@BBB@BBBBBBB          $
-$  C  B@@@B!!!!!B         $
-$    B@B@BC!!!!!B         $
+$  C  B@@@B     B         $
+$    B@B@BC     B         $
 $BBBBB  BBBB@BBB          $
 $    @                    $
 $    @                    $

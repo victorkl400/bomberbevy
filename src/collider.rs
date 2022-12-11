@@ -10,6 +10,7 @@ use crate::{
     audio::play_sfx,
     bomb::Bomb,
     constants::SFX_AUDIO_CHANNEL,
+    logic::Flag,
     map::{Breakable, CustomProps, ObjectProps},
     player::Player,
     utils::{animate_interactive_items, spawn_object},
@@ -25,7 +26,7 @@ impl Plugin for ColliderPlugin {
         app.add_system_set(
             SystemSet::on_update(GameState::Gameplay)
                 .with_system(player_and_item_collision_listener)
-                .with_system(player_and_bomb_collision_listener)
+                .with_system(player_and_flag_collision_listener)
                 .with_system(animate_interactive_items)
                 .with_system(explosion_collision_listener),
         );
@@ -161,10 +162,10 @@ pub fn explosion_collision_listener(
 }
 
 //Player Collision with UpgradeItems
-pub fn player_and_bomb_collision_listener(
+pub fn player_and_flag_collision_listener(
     mut collision_events: EventReader<CollisionEvent>,
     mut player_query: Query<(Entity, &mut Player), With<Player>>,
-    bomb_query: Query<(Entity, &Bomb), Without<Player>>,
+    mut flag_query: Query<(Entity, &mut Flag), Without<Player>>,
     mut commands: Commands,
     asset_server: Res<AssetServer>,
     mut audio: ResMut<DynamicAudioChannels>,
@@ -173,34 +174,27 @@ pub fn player_and_bomb_collision_listener(
     for collision_event in collision_events.iter() {
         match collision_event {
             CollisionEvent::Started(entity_1, entity_2, _flags) => {
+                if flag_query.is_empty() {
+                    break;
+                }
+
                 //If found an event, check if envolves the player
                 let (player_entity, mut player) = player_query.single_mut();
+                let (flag_entity, mut flag) = flag_query.single_mut();
+
                 let has_player_collide = player_entity == *entity_1 || player_entity == *entity_2;
-                println!("{:?}", has_player_collide);
-                //If event is not related to player, ignore it, another
+                let has_flag_collide = flag_entity == *entity_1 || flag_entity == *entity_2;
+                println!(
+                    "Player and flag collided ? {:?}",
+                    has_player_collide && has_flag_collide
+                );
+                //If event is not related to player or flag, ignore it, another
                 //listener should handle it
-                if !has_player_collide {
+                if !has_player_collide || !has_flag_collide {
                     break;
                 }
-                let bomb_entity = if player_entity == *entity_1 {
-                    entity_2
-                } else {
-                    entity_1
-                };
-
-                let is_bomb = bomb_query.contains(*bomb_entity);
-
-                if !is_bomb {
-                    break;
-                }
-                //Despawn player
-                commands.entity(player_entity).despawn_recursive();
-                let random_value = rand::thread_rng().gen_range(1..3);
-                play_sfx(
-                    audio.create_channel(SFX_AUDIO_CHANNEL),
-                    asset_server.to_owned(),
-                    String::from(format!("audios/sfx/game_over_{}.ogg", random_value)),
-                )
+                //Despawn flag
+                commands.entity(flag_entity).despawn_recursive();
             }
             CollisionEvent::Stopped(_e1, _e2, _flags) => {
                 // Collision OUT

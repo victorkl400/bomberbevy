@@ -104,7 +104,7 @@ pub fn spawn_map_object(
 /// * `commands`: Commands is a struct that allows you to add entities to the game.
 /// * `asset_server`: This is the asset server that we'll use to load the assets.
 fn create_basic_map(mut commands: Commands, asset_server: Res<AssetServer>) {
-    let file = File::open("assets/maps/level1.txt").expect("No map found");
+    let file = File::open("assets/maps/level2.txt").expect("No map found");
     //Hashmap that maps each character index and relates to the rendering
     let object_types = HashMap::from([
         (
@@ -149,10 +149,10 @@ fn create_basic_map(mut commands: Commands, asset_server: Res<AssetServer>) {
                 add_floor: true,
                 is_floor: false,
                 interactive: true,
-                path: "objects/sandwich.glb#Scene0".to_owned(),
+                path: "objects/fireup.glb#Scene0".to_owned(),
                 custom: Some(CustomProps {
-                    scale: Vec3::new(0.8, 0.4, 0.8),
-                    rotation: Quat::from_rotation_y(0.0),
+                    scale: Vec3::new(0.1, 0.3, 0.2),
+                    rotation: Quat::from_rotation_y(45.0),
                     sum_translation: Vec3::new(0.0, 0.5, 0.0),
                 }),
                 breakable: true,
@@ -171,18 +171,6 @@ fn create_basic_map(mut commands: Commands, asset_server: Res<AssetServer>) {
                 name: String::from("RoundedWall"),
             },
         ), //Rounded Wall
-        (
-            33,
-            ObjectProps {
-                add_floor: false,
-                is_floor: true,
-                interactive: false,
-                path: "objects/tile_dirt.glb#Scene0".to_owned(),
-                custom: None,
-                breakable: false,
-                name: String::from("FloorDirt"),
-            },
-        ), //Floor Dirt
         (
             35,
             ObjectProps {

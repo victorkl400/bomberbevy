@@ -168,6 +168,6 @@ pub fn animate_interactive_items(
     time: Res<Time>,
 ) {
     for (_interactive_item, mut item_transform) in item_query.iter_mut() {
-        item_transform.rotation = Quat::from_rotation_y(time.elapsed_seconds() as f32);
+        item_transform.rotation = Quat::from_rotation_y(time.elapsed_seconds() * 2 as f32);
     }
 }

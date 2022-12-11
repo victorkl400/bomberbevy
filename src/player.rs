@@ -24,7 +24,7 @@ pub struct Player {
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugin(RapierPhysicsPlugin::<NoUserData>::default())
-            // .add_plugin(RapierDebugRenderPlugin::default())
+            .add_plugin(RapierDebugRenderPlugin::default())
             .add_system_set(SystemSet::on_enter(GameState::Gameplay).with_system(spawn_player))
             .add_system_set(SystemSet::on_update(GameState::Gameplay).with_system(player_movement));
     }

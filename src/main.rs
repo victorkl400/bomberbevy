@@ -5,6 +5,7 @@ use bevy_inspector_egui::WorldInspectorPlugin;
 use bomb::BombPlugin;
 use collider::ColliderPlugin;
 use constants::{HEIGHT, WIDTH};
+use logic::GameLogicPlugin;
 use map::MapPlugin;
 use menu::MenuPlugin;
 use player::PlayerPlugin;
@@ -15,6 +16,7 @@ pub mod audio;
 pub mod bomb;
 pub mod collider;
 pub mod constants;
+pub mod logic;
 pub mod map;
 pub mod menu;
 pub mod player;
@@ -46,6 +48,7 @@ fn main() {
         //Custom Mod Import
         .add_plugin(MapPlugin)
         .add_plugin(GameAudioPlugin)
+        .add_plugin(GameLogicPlugin)
         .add_plugin(PlayerPlugin)
         .add_plugin(BombPlugin)
         .add_plugin(ColliderPlugin)

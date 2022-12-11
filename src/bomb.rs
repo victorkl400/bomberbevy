@@ -71,21 +71,12 @@ fn drop_bomb(
 
     if player.bomb_delay.finished() && keyboard.just_pressed(KeyCode::Space) {
         commands
-            .spawn(PbrBundle {
-                mesh: meshes.add(
-                    Mesh::try_from(shape::Icosphere {
-                        radius: 0.2,
-                        subdivisions: 32,
-                    })
-                    .unwrap(),
-                ),
-                material: materials.add(StandardMaterial {
-                    base_color: Color::hex("000000").unwrap(),
-                    ..default()
-                }),
+            .spawn(SceneBundle {
+                scene: asset_server.load("objects/bomb.glb#Scene0"),
                 transform: Transform {
                     translation: Vec3::new(player_pos.x, player_pos.y + 0.1, player_pos.z),
-                    ..default()
+                    scale: Vec3::new(0.5, 0.5, 0.5),
+                    ..Default::default()
                 },
                 ..default()
             })
