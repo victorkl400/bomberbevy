@@ -3,7 +3,7 @@ use bevy::{
     utils::HashMap,
 };
 
-use crate::map::{CustomProps, ObjectProps};
+// use crate::map::{CustomProps, ObjectProps};
 
 pub const HEIGHT: f32 = 720.0;
 pub const WIDTH: f32 = 1280.0;

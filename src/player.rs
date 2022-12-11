@@ -9,7 +9,7 @@ use bevy_rapier3d::{
     render::RapierDebugRenderPlugin,
 };
 
-use crate::constants::BOMB_SPAWN_DELAY;
+use crate::{constants::BOMB_SPAWN_DELAY, GameState};
 
 pub struct PlayerPlugin;
 
@@ -24,8 +24,8 @@ impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugin(RapierPhysicsPlugin::<NoUserData>::default())
             .add_plugin(RapierDebugRenderPlugin::default())
-            .add_startup_system(spawn_player)
-            .add_system(player_movement);
+            .add_system_set(SystemSet::on_enter(GameState::Gameplay).with_system(spawn_player))
+            .add_system_set(SystemSet::on_update(GameState::Gameplay).with_system(player_movement));
     }
 }
 

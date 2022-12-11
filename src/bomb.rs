@@ -9,6 +9,7 @@ use crate::{
     constants::{BOMB_EXPLOSTION_TIME, BOMB_SPAWN_DELAY, SFX_AUDIO_CHANNEL},
     map::Breakable,
     player::Player,
+    GameState,
 };
 
 pub struct BombPlugin;
@@ -19,7 +20,11 @@ pub struct Bomb {
 }
 impl Plugin for BombPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system(drop_bomb).add_system(explode_bomb);
+        app.add_system_set(
+            SystemSet::on_update(GameState::Gameplay)
+                .with_system(drop_bomb)
+                .with_system(explode_bomb),
+        );
     }
 }
 

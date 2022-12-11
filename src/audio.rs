@@ -3,6 +3,8 @@ use bevy_kira_audio::{
     AudioApp, AudioChannel, AudioControl, AudioPlugin, AudioSource, DynamicAudioChannel,
 };
 
+use crate::GameState;
+
 #[derive(Resource, Component, Default, Clone)]
 struct BackgroundChannel;
 #[derive(Resource, Component, Default, Clone)]
@@ -20,7 +22,10 @@ impl Plugin for GameAudioPlugin {
         app.add_plugin(AudioPlugin)
             .add_audio_channel::<BackgroundChannel>()
             .add_audio_channel::<SoundEffectChannel>()
-            .add_startup_system(start_bg_music::<BackgroundChannel>)
+            .add_system_set(
+                SystemSet::on_enter(GameState::Gameplay)
+                    .with_system(start_bg_music::<BackgroundChannel>),
+            )
             .add_startup_system_to_stage(StartupStage::PreStartup, load_audio);
     }
 }

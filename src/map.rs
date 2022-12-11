@@ -7,7 +7,10 @@ use std::{
 use bevy::{prelude::*, utils::HashMap};
 use bevy_inspector_egui::Inspectable;
 
-use crate::utils::{spawn_custom, spawn_floor, spawn_object};
+use crate::{
+    utils::{spawn_custom, spawn_floor, spawn_object},
+    GameState,
+};
 
 pub struct MapPlugin;
 
@@ -35,7 +38,7 @@ pub struct ObjectProps {
 
 impl Plugin for MapPlugin {
     fn build(&self, app: &mut App) {
-        app.add_startup_system(create_basic_map);
+        app.add_system_set(SystemSet::on_enter(GameState::Gameplay).with_system(create_basic_map));
     }
 }
 /// If the object needs a floor, spawn a floor and the object. If it's a floor, spawn a floor. If it's a

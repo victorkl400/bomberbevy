@@ -1,13 +1,13 @@
 use bevy::prelude::{
     App, AssetServer, Commands, Component, DespawnRecursiveExt, Entity, EventReader, Plugin, Query,
-    Res, ResMut, With, Without,
+    Res, ResMut, SystemSet, With, Without,
 };
 use bevy_kira_audio::{DynamicAudioChannel, DynamicAudioChannels};
 use bevy_rapier3d::prelude::CollisionEvent;
 
 use crate::{
     audio::play_sfx, bomb::Bomb, constants::SFX_AUDIO_CHANNEL, map::Breakable, player::Player,
-    utils::animate_interactive_items,
+    utils::animate_interactive_items, GameState,
 };
 
 #[derive(Component)]
@@ -16,9 +16,12 @@ pub struct ColliderPlugin;
 
 impl Plugin for ColliderPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system(player_collision_listener)
-            .add_system(animate_interactive_items)
-            .add_system(explosion_collision_listener);
+        app.add_system_set(
+            SystemSet::on_update(GameState::Gameplay)
+                .with_system(player_collision_listener)
+                .with_system(animate_interactive_items)
+                .with_system(explosion_collision_listener),
+        );
     }
 }
 

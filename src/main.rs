@@ -6,19 +6,26 @@ use bomb::BombPlugin;
 use collider::ColliderPlugin;
 use constants::{HEIGHT, WIDTH};
 use map::MapPlugin;
+use menu::MenuPlugin;
 use player::PlayerPlugin;
 use simula_action::ActionPlugin;
 use simula_camera::{flycam::*, orbitcam::*};
-use state::GameState;
 
 pub mod audio;
 pub mod bomb;
 pub mod collider;
 pub mod constants;
 pub mod map;
+pub mod menu;
 pub mod player;
-pub mod state;
 pub mod utils;
+
+#[derive(Copy, Clone, PartialEq, Eq, Debug, Hash)]
+pub enum GameState {
+    Menu,
+    Loading,
+    Gameplay,
+}
 
 fn main() {
     let mut app = App::new();
@@ -42,6 +49,7 @@ fn main() {
         .add_plugin(PlayerPlugin)
         .add_plugin(BombPlugin)
         .add_plugin(ColliderPlugin)
+        .add_plugin(MenuPlugin)
         //External Mod Import
         .add_plugin(EguiPlugin)
         .add_plugin(ActionPlugin)
@@ -49,18 +57,14 @@ fn main() {
         .add_plugin(FlyCameraPlugin)
         .add_plugin(WorldInspectorPlugin::new())
         //Systems
-        .add_startup_system(setup_basic_scene)
+        // .add_startup_system_to_stage(StartupStage::PreStartup, asset_loading)
+        //TODO despawn scene on returning to main menu (on_exit)
+        .add_system_set(SystemSet::on_enter(GameState::Gameplay).with_system(setup_basic_scene))
+        .add_startup_system(spawn_camera)
         .run();
 }
 
 fn setup_basic_scene(mut commands: Commands) {
-    // Spawn Camera
-    let camera_location = Transform::from_xyz(0.0, 11.0, 7.0);
-    commands.spawn(Camera3dBundle {
-        transform: camera_location.looking_at(Vec3::ZERO, Vec3::Y),
-        ..default()
-    });
-
     // Spawn Light
     let light_location = Transform::from_xyz(0.0, 5.0, 0.5);
     commands.spawn(PointLightBundle {
@@ -70,6 +74,15 @@ fn setup_basic_scene(mut commands: Commands) {
             ..default()
         },
         transform: light_location,
+        ..default()
+    });
+}
+
+fn spawn_camera(mut commands: Commands) {
+    // Spawn Camera
+    let camera_location = Transform::from_xyz(0.0, 11.0, 7.0);
+    commands.spawn(Camera3dBundle {
+        transform: camera_location.looking_at(Vec3::ZERO, Vec3::Y),
         ..default()
     });
 }
