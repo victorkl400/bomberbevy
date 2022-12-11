@@ -69,7 +69,10 @@ fn drop_bomb(
         ),
     ];
 
-    if player.bomb_delay.finished() && keyboard.just_pressed(KeyCode::Space) {
+    if player.bomb_delay.finished()
+        && keyboard.just_pressed(KeyCode::Space)
+        && player.bomb_amount > 0
+    {
         commands
             .spawn(SceneBundle {
                 scene: asset_server.load("objects/bomb.glb#Scene0"),
@@ -90,6 +93,7 @@ fn drop_bomb(
             .insert(Collider::compound(bomb_explosion_range))
             .insert(Sensor);
         player.bomb_delay = Timer::new(Duration::from_millis(BOMB_SPAWN_DELAY), TimerMode::Once);
+        player.bomb_amount -= 1; //Decrease amount
         play_sfx(
             audio.create_channel(SFX_AUDIO_CHANNEL),
             asset_server.to_owned(),

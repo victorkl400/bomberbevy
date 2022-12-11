@@ -16,9 +16,15 @@ use crate::{
     utils::{animate_interactive_items, spawn_object},
     GameState,
 };
-
+#[derive(PartialEq)]
+pub enum UpgradeType {
+    Bomb,
+    Fire,
+}
 #[derive(Component)]
-pub struct InteractiveItem;
+pub struct InteractiveItem {
+    pub upgrade: UpgradeType,
+}
 pub struct ColliderPlugin;
 
 impl Plugin for ColliderPlugin {
@@ -76,8 +82,14 @@ pub fn player_and_item_collision_listener(
                     String::from("audios/sfx/get_item.ogg"),
                 );
                 //Give Player Upgrade
-                //TODO: Custom upgrades
-                player.speed += 0.1;
+                let (entidade, item) = interactive_query.get(*item_entity).unwrap();
+                if item.upgrade == UpgradeType::Bomb {
+                    player.bomb_amount += 1;
+                } else if item.upgrade == UpgradeType::Fire {
+                    player.bomb_range += 1.0;
+                } else {
+                    player.speed += 0.1;
+                }
             }
             CollisionEvent::Stopped(_e1, _e2, _flags) => {
                 // Collision OUT
@@ -131,12 +143,17 @@ pub fn explosion_collision_listener(
                 );
                 //Possibly spawn an item
                 let random_value = rand::thread_rng().gen_range(0..100);
+                let upgrade_to_spawn = if random_value >= 0 && random_value <= 5 {
+                    "objects/fireup.glb#Scene0"
+                } else {
+                    "objects/bombup.glb#Scene0"
+                };
                 if random_value >= 0 && random_value <= 10 {
                     let object_props = ObjectProps {
                         add_floor: true,
                         is_floor: false,
                         interactive: true,
-                        path: "objects/sandwich.glb#Scene0".to_owned(),
+                        path: upgrade_to_spawn.to_owned(),
                         custom: Some(CustomProps {
                             scale: Vec3::new(0.8, 0.4, 0.8),
                             rotation: Quat::from_rotation_y(0.0),

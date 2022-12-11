@@ -6,7 +6,7 @@ use bevy::{
 use bevy_rapier3d::prelude::{ActiveCollisionTypes, ActiveEvents, Collider, RigidBody, Sensor};
 
 use crate::{
-    collider::InteractiveItem,
+    collider::{InteractiveItem, UpgradeType},
     constants::DEFAULT_OBJECT_SCALE,
     map::{Breakable, ObjectProps},
 };
@@ -45,7 +45,9 @@ pub fn spawn_object(
         //If interactive object, add collision events and make the collider smaller
         object_spawn
             .insert(Sensor)
-            .insert(InteractiveItem)
+            .insert(InteractiveItem {
+                upgrade: UpgradeType::Fire,
+            })
             .insert(ActiveCollisionTypes::KINEMATIC_STATIC)
             .insert(ActiveEvents::COLLISION_EVENTS)
             .insert(Collider::cuboid(0.3, 0.3, 0.3));
@@ -137,7 +139,9 @@ pub fn spawn_custom(
         //If interactive object, add collision events and make the collider smaller
         object_spawn
             .insert(Sensor)
-            .insert(InteractiveItem)
+            .insert(InteractiveItem {
+                upgrade: UpgradeType::Fire,
+            })
             .insert(ActiveCollisionTypes::KINEMATIC_STATIC)
             .insert(ActiveEvents::COLLISION_EVENTS)
             .insert(Collider::cuboid(0.3, 0.3, 0.3))

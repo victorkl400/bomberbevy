@@ -19,6 +19,7 @@ pub struct Player {
     pub life: f32,
     pub bomb_delay: Timer,
     pub bomb_range: f32,
+    pub bomb_amount: u32,
 }
 
 impl Plugin for PlayerPlugin {
@@ -105,6 +106,7 @@ fn spawn_player(mut commands: Commands, asset_server: Res<AssetServer>) {
         .insert(Name::new("Player"))
         .insert(Player {
             speed: 1.0,
+            bomb_amount: 3,
             bomb_delay: Timer::new(Duration::from_millis(BOMB_SPAWN_DELAY), TimerMode::Once),
             bomb_range: 1.0,
             life: 2.0,
