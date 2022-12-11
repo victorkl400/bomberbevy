@@ -1,13 +1,19 @@
 use bevy::prelude::{
-    App, AssetServer, Commands, Component, DespawnRecursiveExt, Entity, EventReader, Plugin, Query,
-    Res, ResMut, SystemSet, With, Without,
+    App, AssetServer, Commands, Component, DespawnRecursiveExt, Entity, EventReader, Plugin, Quat,
+    Query, Res, ResMut, SystemSet, Transform, Vec3, With, Without,
 };
 use bevy_kira_audio::{DynamicAudioChannel, DynamicAudioChannels};
 use bevy_rapier3d::prelude::CollisionEvent;
+use rand::Rng;
 
 use crate::{
-    audio::play_sfx, bomb::Bomb, constants::SFX_AUDIO_CHANNEL, map::Breakable, player::Player,
-    utils::animate_interactive_items, GameState,
+    audio::play_sfx,
+    bomb::Bomb,
+    constants::SFX_AUDIO_CHANNEL,
+    map::{Breakable, CustomProps, ObjectProps},
+    player::Player,
+    utils::{animate_interactive_items, spawn_object},
+    GameState,
 };
 
 #[derive(Component)]
@@ -18,14 +24,16 @@ impl Plugin for ColliderPlugin {
     fn build(&self, app: &mut App) {
         app.add_system_set(
             SystemSet::on_update(GameState::Gameplay)
-                .with_system(player_collision_listener)
+                .with_system(player_and_item_collision_listener)
+                .with_system(player_and_bomb_collision_listener)
                 .with_system(animate_interactive_items)
                 .with_system(explosion_collision_listener),
         );
     }
 }
 
-pub fn player_collision_listener(
+//Player Collision with UpgradeItems
+pub fn player_and_item_collision_listener(
     mut collision_events: EventReader<CollisionEvent>,
     mut player_query: Query<(Entity, &mut Player), With<Player>>,
     interactive_query: Query<(Entity, &InteractiveItem), Without<Player>>,
@@ -77,10 +85,11 @@ pub fn player_collision_listener(
     }
 }
 
+//Bomb Collision with Breakable
 pub fn explosion_collision_listener(
     mut collision_events: EventReader<CollisionEvent>,
     bomb_query: Query<Entity, With<Bomb>>,
-    breakable_query: Query<(Entity, &Breakable), Without<Bomb>>,
+    breakable_query: Query<(Entity, &Breakable, &Transform), Without<Bomb>>,
     mut commands: Commands,
     asset_server: Res<AssetServer>,
     mut audio: ResMut<DynamicAudioChannels>,
@@ -109,7 +118,8 @@ pub fn explosion_collision_listener(
                 } else {
                     entity_2
                 };
-
+                let (_, _breakable, breakable_transform) =
+                    breakable_query.get(*breakable_entity).unwrap();
                 // Despawn breakable and play explosion sound
                 item_collision(
                     &mut commands,
@@ -117,6 +127,79 @@ pub fn explosion_collision_listener(
                     asset_server.to_owned(),
                     audio.create_channel(SFX_AUDIO_CHANNEL),
                     String::from("audios/sfx/bomb_explosion.ogg"),
+                );
+                //Possibly spawn an item
+                let random_value = rand::thread_rng().gen_range(0..100);
+                if random_value >= 0 && random_value <= 10 {
+                    let object_props = ObjectProps {
+                        add_floor: true,
+                        is_floor: false,
+                        interactive: true,
+                        path: "objects/sandwich.glb#Scene0".to_owned(),
+                        custom: Some(CustomProps {
+                            scale: Vec3::new(0.8, 0.4, 0.8),
+                            rotation: Quat::from_rotation_y(0.0),
+                            sum_translation: Vec3::ZERO,
+                        }),
+                        breakable: true,
+                        name: String::from("Coin"),
+                    };
+
+                    spawn_object(
+                        &mut commands,
+                        &object_props,
+                        &asset_server,
+                        breakable_transform.translation,
+                    );
+                }
+            }
+            CollisionEvent::Stopped(_e1, _e2, _flags) => {
+                // Collision OUT
+            }
+        }
+    }
+}
+
+//Player Collision with UpgradeItems
+pub fn player_and_bomb_collision_listener(
+    mut collision_events: EventReader<CollisionEvent>,
+    mut player_query: Query<(Entity, &mut Player), With<Player>>,
+    bomb_query: Query<(Entity, &Bomb), Without<Player>>,
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    mut audio: ResMut<DynamicAudioChannels>,
+) {
+    //Iterate over collision events
+    for collision_event in collision_events.iter() {
+        match collision_event {
+            CollisionEvent::Started(entity_1, entity_2, _flags) => {
+                //If found an event, check if envolves the player
+                let (player_entity, mut player) = player_query.single_mut();
+                let has_player_collide = player_entity == *entity_1 || player_entity == *entity_2;
+                println!("{:?}", has_player_collide);
+                //If event is not related to player, ignore it, another
+                //listener should handle it
+                if !has_player_collide {
+                    break;
+                }
+                let bomb_entity = if player_entity == *entity_1 {
+                    entity_2
+                } else {
+                    entity_1
+                };
+
+                let is_bomb = bomb_query.contains(*bomb_entity);
+
+                if !is_bomb {
+                    break;
+                }
+                //Despawn player
+                commands.entity(player_entity).despawn_recursive();
+                let random_value = rand::thread_rng().gen_range(1..3);
+                play_sfx(
+                    audio.create_channel(SFX_AUDIO_CHANNEL),
+                    asset_server.to_owned(),
+                    String::from(format!("audios/sfx/game_over_{}.ogg", random_value)),
                 )
             }
             CollisionEvent::Stopped(_e1, _e2, _flags) => {
@@ -125,6 +208,7 @@ pub fn explosion_collision_listener(
         }
     }
 }
+
 /// "When an item collides with the player, despawn the item, play a sound, and give the player an
 /// upgrade."
 ///

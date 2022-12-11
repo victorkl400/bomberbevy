@@ -16,6 +16,7 @@ pub struct PlayerPlugin;
 #[derive(Component)]
 pub struct Player {
     pub speed: f32,
+    pub life: f32,
     pub bomb_delay: Timer,
     pub bomb_range: f32,
 }
@@ -23,7 +24,7 @@ pub struct Player {
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugin(RapierPhysicsPlugin::<NoUserData>::default())
-            .add_plugin(RapierDebugRenderPlugin::default())
+            // .add_plugin(RapierDebugRenderPlugin::default())
             .add_system_set(SystemSet::on_enter(GameState::Gameplay).with_system(spawn_player))
             .add_system_set(SystemSet::on_update(GameState::Gameplay).with_system(player_movement));
     }
@@ -106,5 +107,6 @@ fn spawn_player(mut commands: Commands, asset_server: Res<AssetServer>) {
             speed: 1.0,
             bomb_delay: Timer::new(Duration::from_millis(BOMB_SPAWN_DELAY), TimerMode::Once),
             bomb_range: 1.0,
+            life: 2.0,
         });
 }

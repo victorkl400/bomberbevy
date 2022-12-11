@@ -57,8 +57,6 @@ fn main() {
         .add_plugin(FlyCameraPlugin)
         .add_plugin(WorldInspectorPlugin::new())
         //Systems
-        // .add_startup_system_to_stage(StartupStage::PreStartup, asset_loading)
-        //TODO despawn scene on returning to main menu (on_exit)
         .add_system_set(SystemSet::on_enter(GameState::Gameplay).with_system(setup_basic_scene))
         .add_startup_system(spawn_camera)
         .run();

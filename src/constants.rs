@@ -1,7 +1,4 @@
-use bevy::{
-    prelude::{Quat, Vec3},
-    utils::HashMap,
-};
+use bevy::prelude::Vec3;
 
 // use crate::map::{CustomProps, ObjectProps};
 
