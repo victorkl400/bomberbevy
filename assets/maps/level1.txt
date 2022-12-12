@@ -1,15 +1,15 @@
 R#$$$$$$$$$$$$$$$$$$$$$$$#R
-#B@    @                  #
-$C@    B                  $
-$BBB@BB@                  $
+#B                        #
 $      B                  $
-$      @                  $
-$BBB@BBB@BBBBBBB          $
-$  C  B@@@B     B         $
-$    B@B@BC     B         $
-$BBBBB  BBBB@BBB          $
-$    @                    $
-$    @                    $
+$BBB BB                   $
+$      B                  $
+$                         $
+$BBB BBB BBBBBBB          $
+$     B   B    CB         $
+$    B B B      B         $
+$BBBBB  BBBB BBB          $
+$                         $
+$                         $
 $    B                    $
 #    B                    #
 R#$$$$$$$$$$$$$$$$$$$$$$$#R

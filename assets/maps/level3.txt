@@ -1,0 +1,15 @@
+R#$$$$$$$$$$$$$$$$$$$$$$$#R
+#B            B  B        #
+$      B      B           $
+$BBB BB       BBBB        $
+$      B                  $
+$                     C   $
+$BBB BBB BB               $
+$     B   B     B         $
+$    B B B      B         $
+$               BBB       $
+$BBBBBBBBBBBBB     BBBBBBB$
+$ BBBBBBBBBBBBBBB BBBBBBBB$
+$ BBBB                    $
+#       B                 #
+R#$$$$$$$$$$$$$$$$$$$$$$$#R

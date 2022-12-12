@@ -3,7 +3,7 @@ use bevy_kira_audio::{
     AudioApp, AudioChannel, AudioControl, AudioPlugin, AudioSource, DynamicAudioChannel,
 };
 
-use crate::GameState;
+use crate::{GameState, Level};
 
 #[derive(Resource, Component, Default, Clone)]
 struct BackgroundChannel;
@@ -13,9 +13,12 @@ pub struct SoundEffectChannel;
 #[derive(Resource)]
 pub struct AudioState {
     level_1: Handle<AudioSource>,
+    level_2: Handle<AudioSource>,
+    level_3: Handle<AudioSource>,
     game_over_1: Handle<AudioSource>,
     game_over_2: Handle<AudioSource>,
     game_over_3: Handle<AudioSource>,
+    menu: Handle<AudioSource>,
     volume: f64,
 }
 pub struct GameAudioPlugin;
@@ -25,6 +28,13 @@ impl Plugin for GameAudioPlugin {
         app.add_plugin(AudioPlugin)
             .add_audio_channel::<BackgroundChannel>()
             .add_audio_channel::<SoundEffectChannel>()
+            .add_system_set(
+                SystemSet::on_enter(GameState::Menu)
+                    .with_system(start_menu_music::<BackgroundChannel>),
+            )
+            .add_system_set(
+                SystemSet::on_exit(GameState::Menu).with_system(stop_bg_music::<BackgroundChannel>),
+            )
             .add_system_set(
                 SystemSet::on_enter(GameState::Gameplay)
                     .with_system(start_bg_music::<BackgroundChannel>),
@@ -50,13 +60,19 @@ impl Plugin for GameAudioPlugin {
 /// world.
 /// * `asset_server`: Res<AssetServer> - This is the asset server that we'll use to load the audio file.
 fn load_audio(mut commands: Commands, asset_server: Res<AssetServer>) {
-    let level_1: Handle<AudioSource> = asset_server.load("audios/background/level1.ogg");
+    let level_1: Handle<AudioSource> = asset_server.load("audios/background/level_1.ogg");
+    let level_2: Handle<AudioSource> = asset_server.load("audios/background/level_2.ogg");
+    let level_3: Handle<AudioSource> = asset_server.load("audios/background/level_3.ogg");
+    let menu: Handle<AudioSource> = asset_server.load("audios/background/menu.ogg");
     let game_over_1: Handle<AudioSource> = asset_server.load("audios/sfx/game_over_1.ogg");
     let game_over_2: Handle<AudioSource> = asset_server.load("audios/sfx/game_over_2.ogg");
     let game_over_3: Handle<AudioSource> = asset_server.load("audios/sfx/game_over_3.ogg");
 
     commands.insert_resource(AudioState {
         level_1,
+        level_2,
+        level_3,
+        menu,
         game_over_1,
         game_over_2,
         game_over_3,
@@ -91,17 +107,37 @@ pub fn play_sfx(channel: &DynamicAudioChannel, asset_server: AssetServer, path: 
 fn start_bg_music<T: Component + Default>(
     channel: Res<AudioChannel<T>>,
     audio_handles: Res<AudioState>,
-    game_state: Res<State<GameState>>,
+    level_state: Res<State<Level>>,
 ) {
-    channel.play(audio_handles.level_1.clone());
     channel.set_volume(audio_handles.volume);
+
+    //TODO: Improve this level comparison
+    if level_state.current().to_owned() == Level::Level1 {
+        channel.play(audio_handles.level_1.clone());
+    }
+    if level_state.current().to_owned() == Level::Level2 {
+        channel.play(audio_handles.level_2.clone());
+    }
+    if level_state.current().to_owned() == Level::Level3 {
+        channel.play(audio_handles.level_3.clone());
+    }
 }
 
 fn play_game_over<T: Component + Default>(
     channel: Res<AudioChannel<T>>,
     audio_handles: Res<AudioState>,
+    level_state: Res<State<Level>>,
 ) {
-    channel.play(audio_handles.game_over_1.clone());
+    //TODO: Improve this level comparison
+    if level_state.current().to_owned() == Level::Level1 {
+        channel.play(audio_handles.game_over_1.clone());
+    }
+    if level_state.current().to_owned() == Level::Level2 {
+        channel.play(audio_handles.game_over_2.clone());
+    }
+    if level_state.current().to_owned() == Level::Level3 {
+        channel.play(audio_handles.game_over_3.clone());
+    }
 }
 
 fn stop_bg_music<T: Component + Default>(
@@ -109,4 +145,13 @@ fn stop_bg_music<T: Component + Default>(
     audio_handles: Res<AudioState>,
 ) {
     channel.stop();
+}
+
+fn start_menu_music<T: Component + Default>(
+    channel: Res<AudioChannel<T>>,
+    audio_handles: Res<AudioState>,
+) {
+    channel.set_volume(audio_handles.volume);
+
+    channel.play(audio_handles.menu.clone());
 }

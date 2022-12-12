@@ -10,7 +10,7 @@ use bevy_inspector_egui::Inspectable;
 use crate::{
     collider::UpgradeType,
     utils::{spawn_custom, spawn_floor, spawn_object, MapObject},
-    GameState,
+    GameState, Level,
 };
 
 pub struct MapPlugin;
@@ -95,8 +95,22 @@ pub fn spawn_map_object(
 /// * `commands`: Commands,
 /// * `asset_server`: Res<AssetServer> - This is the asset server that we will use to load the assets.
 
-fn create_basic_map(mut commands: Commands, asset_server: Res<AssetServer>) {
-    let file = File::open("assets/maps/level1.txt").expect("No map found");
+fn create_basic_map(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    level_state: Res<State<Level>>,
+) {
+    let mut file = File::open("assets/maps/level1.txt").expect("No map found");
+    if level_state.current().to_owned() == Level::Level1 {
+        file = File::open("assets/maps/level1.txt").expect("No map found");
+    }
+    if level_state.current().to_owned() == Level::Level2 {
+        file = File::open("assets/maps/level2.txt").expect("No map found");
+    }
+    if level_state.current().to_owned() == Level::Level3 {
+        file = File::open("assets/maps/level3.txt").expect("No map found");
+    }
+
     //Hashmap that maps each character index and relates to the rendering
     let object_types = HashMap::from([
         (

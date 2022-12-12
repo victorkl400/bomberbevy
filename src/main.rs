@@ -15,6 +15,7 @@ use gameover::GameOverPlugin;
 use logic::GameLogicPlugin;
 use map::MapPlugin;
 use menu::MenuPlugin;
+use nextlevel::NextLevelPlugin;
 use player::PlayerPlugin;
 use serde::__private::de;
 use simula_action::ActionPlugin;
@@ -28,6 +29,7 @@ pub mod gameover;
 pub mod logic;
 pub mod map;
 pub mod menu;
+pub mod nextlevel;
 pub mod player;
 pub mod utils;
 
@@ -40,6 +42,14 @@ pub enum GameState {
     Loading,
     Gameplay,
     GameOver,
+    NextLevel,
+}
+
+#[derive(Copy, Clone, PartialEq, Eq, Debug, Hash)]
+pub enum Level {
+    Level1,
+    Level2,
+    Level3,
 }
 
 fn main() {
@@ -58,6 +68,7 @@ fn main() {
         }))
         //Game State
         .add_state(GameState::Menu)
+        .add_state(Level::Level1)
         //Custom Mod Import
         .add_plugin(MapPlugin)
         .add_plugin(GameAudioPlugin)
@@ -67,6 +78,7 @@ fn main() {
         .add_plugin(ColliderPlugin)
         .add_plugin(MenuPlugin)
         .add_plugin(GameOverPlugin)
+        .add_plugin(NextLevelPlugin)
         //External Mod Import
         .add_plugin(EguiPlugin)
         .add_plugin(ActionPlugin)

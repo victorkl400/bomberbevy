@@ -41,7 +41,6 @@ fn has_finalized(
     asset_server: Res<AssetServer>,
 ) {
     if breakable_query.is_empty() && flag_query.is_empty() {
-        println!("CONGRATULATIONS, YOU WON");
         let object_props = ObjectProps {
             add_floor: false,
             is_floor: true,

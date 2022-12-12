@@ -102,7 +102,7 @@ fn spawn_player(mut commands: Commands, asset_server: Res<AssetServer>) {
         .insert(Name::new("Player"))
         .insert(Player {
             speed: 1.0,
-            bomb_amount: 5,
+            bomb_amount: 10,
             bomb_delay: Timer::new(Duration::from_millis(BOMB_SPAWN_DELAY), TimerMode::Once),
             bomb_range: 1.0,
             life: 2.0,

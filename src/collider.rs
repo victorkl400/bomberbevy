@@ -1,7 +1,4 @@
-use bevy::prelude::{
-    App, AssetServer, Commands, Component, DespawnRecursiveExt, Entity, EventReader, Plugin, Query,
-    Res, ResMut, SystemSet, Transform, With, Without,
-};
+use bevy::prelude::*;
 use bevy_kira_audio::{DynamicAudioChannel, DynamicAudioChannels};
 use bevy_rapier3d::prelude::CollisionEvent;
 use serde::{Deserialize, Serialize};
@@ -194,6 +191,9 @@ pub fn player_and_flag_collision_listener(
     mut player_query: Query<(Entity, &mut Player), With<Player>>,
     mut flag_query: Query<(Entity, &mut Flag), Without<Player>>,
     mut commands: Commands,
+    mut game_state: ResMut<State<GameState>>,
+    asset_server: Res<AssetServer>,
+    mut audio: ResMut<DynamicAudioChannels>,
 ) {
     //Iterate over collision events
     for collision_event in collision_events.iter() {
@@ -218,8 +218,14 @@ pub fn player_and_flag_collision_listener(
                 if !has_player_collide || !has_flag_collide {
                     break;
                 }
-                //Despawn flag
-                commands.entity(flag_entity).despawn_recursive();
+                item_collision(
+                    &mut commands,
+                    flag_entity.to_owned(),
+                    asset_server.to_owned(),
+                    audio.create_channel(SFX_AUDIO_CHANNEL),
+                    String::from("audios/sfx/won_level_1.ogg"),
+                );
+                game_state.set(GameState::NextLevel);
             }
             CollisionEvent::Stopped(_e1, _e2, _flags) => {
                 // Collision OUT
