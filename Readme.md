@@ -9,7 +9,9 @@ As you may notice this is a bevy game that tries to copy Superbomberman R, but w
 
 ## WARNING
 
-Bomberbevy is still in the _very_ early stages of development.Important features are missing. Documentation is sparse.
+Bomberbevy is still in the _very_ early stages of development.
+Important features are missing.
+Documentation is sparse.
 
 ## Improvement Goals
 
@@ -56,7 +58,8 @@ Controls for playing this game
 
 ## Map Generation
 
-This game implements a map generation based on a `txt` file. Make sure you dont put any block on the Player spawn point.
+This game implements a map generation based on a `txt` file placed under `assets/maps`.
+Make sure you dont put any block on the Player spawn point.
 
 - **$**: Spawns the Tower wall
 - **B**: Spawns a unbreakable Block
