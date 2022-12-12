@@ -25,13 +25,16 @@ Documentation is sparse.
 
 ## Getting Started
 
-Having _Rust 1.51.0_ or later is a must for runnning this game.
+Having **_Rust 1.51.0_** or later is a must for runnning this game.
 
 Follow the [Setup guide](https://bevyengine.org/learn/book/getting-started/setup/) to ensure your development environment is set up correctly.
 
 ```sh
 # Clone the project
 git clone https://github.com/victorkl400/bomberbevy.git
+
+# Access bomberbevy folder
+cd bomberbevy
 
 # Runs the game on the release mode
 cargo run -r
