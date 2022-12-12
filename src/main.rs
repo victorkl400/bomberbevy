@@ -69,6 +69,13 @@ fn main() {
         .run();
 }
 
+/// "Spawn a point light at the given location."
+///
+/// The first line of the function is a comment. Comments are ignored by the compiler
+///
+/// Arguments:
+///
+/// * `commands`: Commands - This is the commands object that is passed into the function.
 fn setup_basic_scene(mut commands: Commands) {
     // Spawn Light
     let light_location = Transform::from_xyz(0.0, 5.0, 0.5);
@@ -83,6 +90,11 @@ fn setup_basic_scene(mut commands: Commands) {
     });
 }
 
+/// `spawn_camera` spawns a camera at a specific location
+///
+/// Arguments:
+///
+/// * `commands`: Commands
 fn spawn_camera(mut commands: Commands) {
     // Spawn Camera
     let camera_location = Transform::from_xyz(0.0, 11.0, 7.0);

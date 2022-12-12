@@ -26,6 +26,14 @@ impl Plugin for MenuPlugin {
     }
 }
 
+/// When any button is pressed, despawn the menu UI and set the game state to `Gameplay`
+///
+/// Arguments:
+///
+/// * `commands`: Commands is a struct that allows you to create, delete, and modify entities.
+/// * `key_evr`: EventReader<KeyboardInput>
+/// * `menu_root`: Query<Entity, With<MenuUI>>
+/// * `game_state`: The game state resource.
 fn any_button_pressed(
     mut commands: Commands,
     mut key_evr: EventReader<KeyboardInput>,
@@ -45,6 +53,19 @@ fn any_button_pressed(
     }
 }
 
+/// "If the close button is clicked, send an `AppExit` event."
+///
+/// The `close_button_clicked` function is a system. It's a function that runs every frame. It's a
+/// function that takes two arguments:
+///
+/// - `interactions`: A query that returns all the `Interaction` components that are attached to
+/// `CloseButton` entities.
+/// - `mut exit`: An event writer that allows us to send `AppExit` events
+///
+/// Arguments:
+///
+/// * `interactions`: Query<&Interaction, (With<CloseButton>, Changed<Interaction>)>
+/// * `exit`: EventWriter<AppExit>
 fn close_button_clicked(
     interactions: Query<&Interaction, (With<CloseButton>, Changed<Interaction>)>,
     mut exit: EventWriter<AppExit>,
@@ -56,6 +77,12 @@ fn close_button_clicked(
     }
 }
 
+/// We spawn a button and an image, and then we add the button as a child of the image
+///
+/// Arguments:
+///
+/// * `commands`: Commands - This is the commands object that is used to spawn entities.
+/// * `asset_server`: Res<AssetServer>
 fn spawn_main_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
     //Spawn a close button
     let close_button = commands

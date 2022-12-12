@@ -39,7 +39,20 @@ impl Plugin for ColliderPlugin {
     }
 }
 
-//Player Collision with UpgradeItems
+/// "When a collision between the player and an interactive item starts, despawn the item, play a sound
+/// and give the player an upgrade."
+///
+/// The first thing we do is to get the collision events from the event reader. Then we iterate over
+/// them
+///
+/// Arguments:
+///
+/// * `collision_events`: EventReader<CollisionEvent>
+/// * `player_query`: Query<(Entity, &mut Player), With<Player>>,
+/// * `interactive_query`: Query<(Entity, &InteractiveItem), Without<Player>>,
+/// * `commands`: Commands - This is a struct that allows you to add, remove, and modify entities.
+/// * `asset_server`: Res<AssetServer> - This is the asset server, which is used to load assets.
+/// * `audio`: ResMut<DynamicAudioChannels>
 pub fn player_and_item_collision_listener(
     mut collision_events: EventReader<CollisionEvent>,
     mut player_query: Query<(Entity, &mut Player), With<Player>>,
@@ -98,7 +111,17 @@ pub fn player_and_item_collision_listener(
     }
 }
 
-//Bomb Collision with Breakable
+/// It listens for collision events between bombs and breakables, and if it finds one, it destroys the
+/// breakable and spawns an item
+///
+/// Arguments:
+///
+/// * `collision_events`: EventReader<CollisionEvent>
+/// * `bomb_query`: Query<Entity, With<Bomb>>,
+/// * `breakable_query`: Query<(Entity, &Breakable, &Transform), Without<Bomb>>,
+/// * `commands`: Commands - This is the command buffer that we will use to spawn new entities.
+/// * `asset_server`: Res<AssetServer> - This is the asset server, which is used to load assets.
+/// * `audio`: ResMut<DynamicAudioChannels>
 pub fn explosion_collision_listener(
     mut collision_events: EventReader<CollisionEvent>,
     bomb_query: Query<Entity, With<Bomb>>,
@@ -180,14 +203,19 @@ pub fn explosion_collision_listener(
     }
 }
 
-//Player Collision with UpgradeItems
+/// If the player and the flag collide, despawn the flag
+///
+/// Arguments:
+///
+/// * `collision_events`: EventReader<CollisionEvent>
+/// * `player_query`: Query<(Entity, &mut Player), With<Player>>
+/// * `flag_query`: Query<(Entity, &mut Flag), Without<Player>>,
+/// * `commands`: Commands
 pub fn player_and_flag_collision_listener(
     mut collision_events: EventReader<CollisionEvent>,
     mut player_query: Query<(Entity, &mut Player), With<Player>>,
     mut flag_query: Query<(Entity, &mut Flag), Without<Player>>,
     mut commands: Commands,
-    asset_server: Res<AssetServer>,
-    mut audio: ResMut<DynamicAudioChannels>,
 ) {
     //Iterate over collision events
     for collision_event in collision_events.iter() {
@@ -198,8 +226,8 @@ pub fn player_and_flag_collision_listener(
                 }
 
                 //If found an event, check if envolves the player
-                let (player_entity, mut player) = player_query.single_mut();
-                let (flag_entity, mut flag) = flag_query.single_mut();
+                let (player_entity, _player) = player_query.single_mut();
+                let (flag_entity, _flag) = flag_query.single_mut();
 
                 let has_player_collide = player_entity == *entity_1 || player_entity == *entity_2;
                 let has_flag_collide = flag_entity == *entity_1 || flag_entity == *entity_2;
@@ -222,19 +250,15 @@ pub fn player_and_flag_collision_listener(
     }
 }
 
-/// "When an item collides with the player, despawn the item, play a sound, and give the player an
-/// upgrade."
-///
-/// The first thing we do is despawn the item. We do this by getting the `commands` resource and calling
-/// `.entity(item_entity)` to get the `EntityCommandBuffer` for the item. Then we call
-/// `.despawn_recursive()` to despawn the item and all of its children
+/// Despawn the item entity and play a sound effect.
 ///
 /// Arguments:
 ///
 /// * `commands`: &mut Commands,
-/// * `item_entity`: The entity of the item that was picked up
-/// * `asset_server`: This is the asset server that we created in the previous section.
+/// * `item_entity`: The entity of the item that was collected
+/// * `asset_server`: The asset server that we created in the previous section.
 /// * `audio`: &DynamicAudioChannel - This is the audio channel that we created in the previous step.
+/// * `audio_source`: The name of the audio file to play.
 pub fn item_collision(
     commands: &mut Commands,
     item_entity: Entity,

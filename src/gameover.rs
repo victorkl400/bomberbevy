@@ -1,6 +1,4 @@
-use bevy::input::keyboard::KeyboardInput;
-use bevy::input::ButtonState;
-use bevy::{app::AppExit, prelude::*};
+use bevy::prelude::*;
 
 use crate::{
     constants::{HEIGHT, WIDTH},
@@ -22,6 +20,14 @@ impl Plugin for GameOverPlugin {
     }
 }
 
+/// We create a TextBundle with a Text that has a single section, and we set the alignment of the Text
+/// to be centered. We then set the style of the TextBundle itself to be positioned at the bottom right
+/// of the screen
+///
+/// Arguments:
+///
+/// * `commands`: Commands - This is the main way to spawn entities into the world.
+/// * `asset_server`: Res<AssetServer>
 fn spawn_main_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
     let texto = commands
         .spawn((

@@ -1,12 +1,9 @@
 use std::time::Duration;
 
 use bevy::prelude::*;
-use bevy_rapier3d::{
-    prelude::{
-        Collider, ExternalForce, KinematicCharacterController, NoUserData, RapierPhysicsPlugin,
-        Restitution, RigidBody,
-    },
-    render::RapierDebugRenderPlugin,
+use bevy_rapier3d::prelude::{
+    Collider, ExternalForce, KinematicCharacterController, NoUserData, RapierPhysicsPlugin,
+    Restitution, RigidBody,
 };
 
 use crate::{constants::BOMB_SPAWN_DELAY, GameState};
@@ -25,7 +22,6 @@ pub struct Player {
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugin(RapierPhysicsPlugin::<NoUserData>::default())
-            // .add_plugin(RapierDebugRenderPlugin::default())
             .add_system_set(SystemSet::on_enter(GameState::Gameplay).with_system(spawn_player))
             .add_system_set(SystemSet::on_update(GameState::Gameplay).with_system(player_movement));
     }
@@ -77,7 +73,8 @@ fn player_movement(
     }
 }
 
-/// We spawn a cube, give it a rigid body, a collider, a name, and a player component
+/// We spawn a cube, give it a rigid body, a collider, a kinematic character controller, a name, and a
+/// player component
 ///
 /// Arguments:
 ///

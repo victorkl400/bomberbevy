@@ -13,6 +13,18 @@ use crate::{
 
 //---------------------------Map Helpers--------------------------//
 
+/// It spawns an object with a collider, rigid body, and name
+///
+/// Arguments:
+///
+/// * `commands`: &mut Commands,
+/// * `object_props`: This is the ObjectProps struct that we defined earlier.
+/// * `asset_server`: The asset server that will load the object's mesh
+/// * `translation`: The position of the object
+///
+/// Returns:
+///
+/// The entity id of the spawned object
 pub fn spawn_object(
     commands: &mut Commands,
     object_props: &ObjectProps,
@@ -60,16 +72,16 @@ pub fn spawn_object(
         .insert(Name::new(object_props.name.clone()))
         .id()
 }
-/// It spawns a floor entity with the given properties
+
+/// It takes in a bunch of stuff, and returns an entity ID
 ///
 /// Arguments:
 ///
 /// * `commands`: &mut Commands,
-/// * `object_props`: This is the object properties that we get from the JSON file.
+/// * `object_props`: This is the ObjectProps struct that we defined earlier.
 /// * `asset_server`: The asset server that will load the object.
-/// * `translation`: Vec3,
-/// * `default_floor`: If true, the floor will be a default floor. If false, the floor will be the floor
-/// specified in the object_props.
+/// * `translation`: Vec3 - The position of the object
+/// * `default_floor`: If true, the floor will be spawned with the default floor model.
 ///
 /// Returns:
 ///
@@ -102,12 +114,12 @@ pub fn spawn_floor(
         .id()
 }
 
-/// It spawns a custom object, which is a 3D model that is loaded from a file
+/// It spawns a custom object, which is a 3D model, and adds the necessary components to it
 ///
 /// Arguments:
 ///
-/// * `commands`: &mut Commands,
-/// * `object_props`: This is the object properties that we're going to use to spawn the object.
+/// * `commands`: &mut Commands - This is the command buffer that we will use to spawn the object.
+/// * `object_props`: The object properties that are defined in the level file.
 /// * `asset_server`: The asset server that will load the object
 /// * `translation`: The position of the object
 ///
@@ -157,7 +169,7 @@ pub fn spawn_custom(
 
 //---------------------------Items Helpers--------------------------//
 
-/// "For each interactive item, rotate it around the y-axis."
+/// "For each interactive item, rotate it around the y axis."
 ///
 /// The first line of the function is a query. A query is a way to get a list of entities that have
 /// certain components. In this case, we're getting a list of entities that have both the
@@ -165,7 +177,7 @@ pub fn spawn_custom(
 ///
 /// Arguments:
 ///
-/// * `item_query`: This is the query that will be used to get the components that we want to animate.
+/// * `item_query`: Query<(&mut InteractiveItem, &mut Transform)>
 /// * `time`: Res<Time>
 pub fn animate_interactive_items(
     mut item_query: Query<(&mut InteractiveItem, &mut Transform)>,

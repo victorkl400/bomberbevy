@@ -6,7 +6,7 @@ use crate::{
     constants::DEFAULT_OBJECT_SCALE,
     map::{Breakable, CustomProps, ObjectProps},
     player::Player,
-    utils::{spawn_custom, spawn_floor},
+    utils::spawn_custom,
     GameState,
 };
 
@@ -24,6 +24,15 @@ impl Plugin for GameLogicPlugin {
         );
     }
 }
+/// If there are no more breakable objects and no more flags, then spawn a flag at the end of the level
+///
+/// Arguments:
+///
+/// * `commands`: Commands - This is the command buffer that we will use to insert entities into the
+/// world.
+/// * `breakable_query`: Query<(Entity, &Breakable, &Transform), Without<Flag>>
+/// * `flag_query`: Query<(Entity, &Flag, &Transform), Without<Breakable>>,
+/// * `asset_server`: Res<AssetServer>
 fn has_finalized(
     mut commands: Commands,
     breakable_query: Query<(Entity, &Breakable, &Transform), Without<Flag>>,
@@ -43,7 +52,7 @@ fn has_finalized(
                 sum_translation: Vec3::ZERO,
             }),
             breakable: false,
-            name: String::from("FloorTeleport"),
+            name: String::from("EndFlag"),
         };
         let flag = spawn_custom(
             &mut commands,
@@ -62,13 +71,22 @@ fn has_finalized(
     }
 }
 
+/// If there are breakables left, the player has no bombs, and there are no bombs on the map, the player
+/// loses
+///
+/// Arguments:
+///
+/// * `breakable_query`: Query<&Breakable, Without<Player>>
+/// * `bomb_query`: Query<&Bomb, Without<Player>>
+/// * `player_query`: Query<&Player, With<Player>>
+/// * `game_state`: ResMut<State<GameState>>
 fn has_lose(
-    breakable_query: Query<(Entity, &Breakable), Without<Player>>,
-    bomb_query: Query<(Entity, &Bomb), Without<Player>>,
-    mut player_query: Query<(Entity, &Player), With<Player>>,
+    breakable_query: Query<&Breakable, Without<Player>>,
+    bomb_query: Query<&Bomb, Without<Player>>,
+    mut player_query: Query<&Player, With<Player>>,
     mut game_state: ResMut<State<GameState>>,
 ) {
-    let (player_ent, player) = player_query.single_mut();
+    let player = player_query.single_mut();
 
     if !breakable_query.is_empty() && player.bomb_amount == 0 && bomb_query.is_empty() {
         println!("YOU LOSE");

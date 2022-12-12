@@ -41,15 +41,15 @@ impl Plugin for MapPlugin {
         app.add_system_set(SystemSet::on_enter(GameState::Gameplay).with_system(create_basic_map));
     }
 }
-/// If the object needs a floor, spawn a floor and the object. If it's a floor, spawn a floor. If it's a
-/// custom object, spawn a custom object. If it's a normal object, spawn a normal object
+
+/// It spawns a map object
 ///
 /// Arguments:
 ///
-/// * `commands`: The commands that will be used to spawn the entity.
+/// * `commands`: The commands that will be used to spawn the object.
 /// * `asset_server`: The asset server that we created in the previous section.
-/// * `_object_types`: This is a HashMap of all the objects that can be spawned.
-/// * `char_key`: The key of the object to be spawned.
+/// * `_object_types`: A HashMap of all the object types that can be spawned.
+/// * `char_key`: The key of the object to spawn.
 /// * `translation`: The position of the object
 ///
 /// Returns:
@@ -82,27 +82,13 @@ pub fn spawn_map_object(
     //Spawn Object
     return spawn_object(commands, object_props, asset_server, translation);
 }
-/// It spawns an object with a collider and rigid body, and if it's interactive, it also adds a sensor
-/// and collision events
+/// It reads a text file and spawns the objects in the scene based on the characters in the text file
 ///
 /// Arguments:
 ///
-/// * `commands`: &mut Commands,
-/// * `object_props`: The object properties that we want to spawn
-/// * `asset_server`: The asset server that will load the object's model
-/// * `translation`: The position of the object
-///
-/// Returns:
-///
-/// The entity id of the spawned object
+/// * `commands`: Commands,
+/// * `asset_server`: Res<AssetServer> - This is the asset server that we will use to load the assets.
 
-/// We open the map file, create a hashmap that maps each character to a set of properties, and then for
-/// each character in the map file, we spawn an object with the properties of the character
-///
-/// Arguments:
-///
-/// * `commands`: Commands is a struct that allows you to add entities to the game.
-/// * `asset_server`: This is the asset server that we'll use to load the assets.
 fn create_basic_map(mut commands: Commands, asset_server: Res<AssetServer>) {
     let file = File::open("assets/maps/level1.txt").expect("No map found");
     //Hashmap that maps each character index and relates to the rendering

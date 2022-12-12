@@ -28,20 +28,17 @@ impl Plugin for BombPlugin {
     }
 }
 
-/// "If the space bar is pressed, spawn a bomb at the player's position."
-///
-/// The first thing we do is get a mutable reference to the player's transform. We do this by creating a
-/// `Query` that looks for entities with the `Player` component and a mutable `Transform` component. We
-/// then use the `single_mut` method to get a mutable reference to the first entity that matches the
-/// query
+/// It spawns a bomb when the player presses the spacebar, and the bomb explodes after a certain amount
+/// of time
 ///
 /// Arguments:
 ///
-/// * `commands`: Commands - This is the resource that allows us to spawn entities.
-/// * `meshes`: ResMut<Assets<Mesh>>,
-/// * `materials`: ResMut<Assets<StandardMaterial>>,
-/// * `player_query`: Query<(&Player, &mut Transform)>
-/// * `keyboard`: Res<Input<KeyCode>>
+/// * `commands`: Commands - This is the command buffer that we use to spawn entities.
+/// * `player_query`: Query<(&mut Player, &mut Transform)>
+/// * `keyboard`: Res<Input<KeyCode>>,
+/// * `time`: Res<Time> - This is the time resource that is used to keep track of the time in the game.
+/// * `asset_server`: Res<AssetServer> - This is the resource that allows us to load assets.
+/// * `audio`: ResMut<DynamicAudioChannels> - This is the resource that allows us to play audio.
 fn drop_bomb(
     mut commands: Commands,
     mut player_query: Query<(&mut Player, &mut Transform)>,
@@ -100,6 +97,17 @@ fn drop_bomb(
     }
 }
 
+/// If the bomb's timer is finished, despawn the bomb and play the explosion sound.
+///
+/// Arguments:
+///
+/// * `commands`: Commands - This is the command buffer that we will use to insert new entities into the
+/// world.
+/// * `bomb_query`: Query<(Entity, &mut Bomb), Without<Breakable>>
+/// * `time`: Res<Time> - This is the time resource, which is used to keep track of the time in the
+/// game.
+/// * `asset_server`: Res<AssetServer>
+/// * `audio`: ResMut<DynamicAudioChannels>
 fn explode_bomb(
     mut commands: Commands,
     mut bomb_query: Query<(Entity, &mut Bomb), Without<Breakable>>,
