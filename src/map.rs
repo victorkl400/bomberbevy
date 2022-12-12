@@ -9,7 +9,7 @@ use bevy_inspector_egui::Inspectable;
 
 use crate::{
     collider::UpgradeType,
-    utils::{spawn_custom, spawn_floor, spawn_object},
+    utils::{spawn_custom, spawn_floor, spawn_object, MapObject},
     GameState,
 };
 
@@ -43,7 +43,8 @@ pub struct ObjectProps {
 
 impl Plugin for MapPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system_set(SystemSet::on_enter(GameState::Gameplay).with_system(create_basic_map));
+        app.add_system_set(SystemSet::on_enter(GameState::Gameplay).with_system(create_basic_map))
+            .add_system_set(SystemSet::on_exit(GameState::Gameplay).with_system(despawn_map));
     }
 }
 
@@ -142,16 +143,16 @@ fn create_basic_map(mut commands: Commands, asset_server: Res<AssetServer>) {
             ObjectProps {
                 add_floor: true,
                 is_floor: false,
-                upgrade: UpgradeType::Speed,
-                path: "objects/speedup.glb#Scene0".to_owned(),
+                upgrade: UpgradeType::Bomb,
+                path: "objects/bombup.glb#Scene0".to_owned(),
                 custom: Some(CustomProps {
-                    scale: Vec3::new(0.1, 0.3, 0.2),
+                    scale: Vec3::new(0.2, 0.3, 0.2),
                     rotation: Quat::from_rotation_y(0.0),
                     sum_translation: Vec3::new(0.0, 0.5, 0.0),
                 }),
                 animated_rotation: true,
                 breakable: true,
-                name: String::from("Coin"),
+                name: String::from("BombUp"),
             },
         ), //Coin
         (
@@ -236,5 +237,11 @@ fn create_basic_map(mut commands: Commands, asset_server: Res<AssetServer>) {
                 );
             }
         }
+    }
+}
+
+fn despawn_map(mut commands: Commands, map_objects: Query<Entity, With<MapObject>>) {
+    for object in map_objects.iter() {
+        commands.entity(object).despawn_recursive();
     }
 }

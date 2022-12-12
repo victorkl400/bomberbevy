@@ -1,5 +1,9 @@
+use std::iter::Map;
+
 use bevy::{
-    prelude::{default, AssetServer, Commands, Entity, Name, Quat, Query, Res, Transform, Vec3},
+    prelude::{
+        default, AssetServer, Commands, Component, Entity, Name, Quat, Query, Res, Transform, Vec3,
+    },
     scene::SceneBundle,
     time::Time,
 };
@@ -11,6 +15,9 @@ use crate::{
     constants::DEFAULT_OBJECT_SCALE,
     map::{AnimatedRotation, Breakable, CustomProps, ObjectProps},
 };
+
+#[derive(Component)]
+pub struct MapObject;
 
 //---------------------------Map Helpers--------------------------//
 
@@ -69,6 +76,7 @@ pub fn spawn_object(
         object_spawn.insert(Collider::cuboid(0.4, 0.4, 0.4));
     }
     object_spawn
+        .insert(MapObject)
         .insert(RigidBody::Fixed)
         .insert(Name::new(object_props.name.clone()))
         .id()
@@ -109,6 +117,7 @@ pub fn spawn_floor(
             },
             ..default()
         })
+        .insert(MapObject)
         .insert(RigidBody::Fixed)
         .insert(Collider::cuboid(1., 0.2, 1.))
         .insert(Name::new(format!("Floor#{}", object_props.name.clone())))
@@ -167,6 +176,7 @@ pub fn spawn_custom(
     }
     //Spawn the custom object
     object_spawn
+        .insert(MapObject)
         .insert(Name::new(object_props.name.clone()))
         .id()
 }

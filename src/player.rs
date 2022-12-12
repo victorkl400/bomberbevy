@@ -2,8 +2,7 @@ use std::time::Duration;
 
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::{
-    Collider, ExternalForce, KinematicCharacterController, NoUserData, RapierPhysicsPlugin,
-    Restitution, RigidBody,
+    Collider, ExternalForce, KinematicCharacterController, Restitution, RigidBody,
 };
 
 use crate::{constants::BOMB_SPAWN_DELAY, GameState};
@@ -22,7 +21,8 @@ pub struct Player {
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_system_set(SystemSet::on_enter(GameState::Gameplay).with_system(spawn_player))
-            .add_system_set(SystemSet::on_update(GameState::Gameplay).with_system(player_movement));
+            .add_system_set(SystemSet::on_update(GameState::Gameplay).with_system(player_movement))
+            .add_system_set(SystemSet::on_exit(GameState::Gameplay).with_system(despawn_player));
     }
 }
 
@@ -107,4 +107,10 @@ fn spawn_player(mut commands: Commands, asset_server: Res<AssetServer>) {
             bomb_range: 1.0,
             life: 2.0,
         });
+}
+
+fn despawn_player(mut commands: Commands, mut player_query: Query<(&Player, Entity)>) {
+    let (_player, player_entity) = player_query.single_mut();
+
+    commands.entity(player_entity).despawn_recursive();
 }

@@ -31,6 +31,9 @@ pub mod menu;
 pub mod player;
 pub mod utils;
 
+#[derive(Component)]
+pub struct SunLight;
+
 #[derive(Copy, Clone, PartialEq, Eq, Debug, Hash)]
 pub enum GameState {
     Menu,
@@ -74,6 +77,9 @@ fn main() {
         .add_plugin(RapierDebugRenderPlugin::default())
         //Systems
         .add_system_set(SystemSet::on_enter(GameState::Gameplay).with_system(setup_basic_scene))
+        .add_system_set(
+            SystemSet::on_exit(GameState::Gameplay).with_system(despawn_setup_basic_scene),
+        )
         .add_startup_system(spawn_camera)
         .run();
 }
@@ -100,7 +106,14 @@ fn setup_basic_scene(mut commands: Commands) {
             },
             ..default()
         })
+        .insert(SunLight)
         .insert(Name::new("SunLight"));
+}
+
+fn despawn_setup_basic_scene(mut commands: Commands, light_query: Query<(&SunLight, Entity)>) {
+    let (_, light_entity) = light_query.single();
+    // Spawn Light
+    commands.entity(light_entity).despawn_recursive();
 }
 
 /// `spawn_camera` spawns a camera at a specific location
