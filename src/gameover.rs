@@ -18,59 +18,36 @@ pub struct GameOverPlugin;
 impl Plugin for GameOverPlugin {
     fn build(&self, app: &mut App) {
         app.add_system_set(SystemSet::on_enter(GameState::GameOver).with_system(spawn_main_menu))
-            .add_system_set(
-                SystemSet::on_update(GameState::GameOver)
-                    .with_system(any_button_pressed)
-                    .with_system(close_button_clicked),
-            );
-    }
-}
-
-fn any_button_pressed(
-    mut commands: Commands,
-    mut key_evr: EventReader<KeyboardInput>,
-    menu_root: Query<Entity, With<GameOverUI>>,
-    mut game_state: ResMut<State<GameState>>,
-) {
-    for ev in key_evr.iter() {
-        match ev.state {
-            ButtonState::Pressed => {
-                let root_entity = menu_root.single();
-                commands.entity(root_entity).despawn_recursive();
-
-                game_state.set(GameState::Gameplay).unwrap();
-            }
-            ButtonState::Released => {}
-        }
-    }
-}
-
-fn close_button_clicked(
-    interactions: Query<&Interaction, (With<CloseButton>, Changed<Interaction>)>,
-    mut exit: EventWriter<AppExit>,
-) {
-    for interaction in &interactions {
-        if matches!(interaction, Interaction::Clicked) {
-            exit.send(AppExit);
-        }
+            .add_system_set(SystemSet::on_update(GameState::GameOver));
     }
 }
 
 fn spawn_main_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
-    //Spawn a close button
-    let close_button = commands
-        .spawn(ButtonBundle {
-            style: Style {
-                size: Size::new(Val::Px(400.0), Val::Px(400.0)),
-                align_self: AlignSelf::FlexStart,
-                justify_content: JustifyContent::FlexStart,
-                margin: UiRect::all(Val::Percent(2.0)),
+    let texto = commands
+        .spawn((
+            // Create a TextBundle that has a Text with a single section.
+            TextBundle::from_section(
+                // Accepts a `String` or any type that converts into a `String`, such as `&str`
+                "Game \n Over !",
+                TextStyle {
+                    font: asset_server.load("fonts/Kenney-Future.ttf"),
+                    font_size: 100.0,
+                    color: Color::BLACK,
+                },
+            ) // Set the alignment of the Text
+            .with_text_alignment(TextAlignment::CENTER)
+            // Set the style of the TextBundle itself.
+            .with_style(Style {
+                position_type: PositionType::Absolute,
+                position: UiRect {
+                    bottom: Val::Px(5.0),
+                    right: Val::Px(15.0),
+                    ..default()
+                },
                 ..default()
-            },
-            background_color: Color::RED.into(),
-            ..default()
-        })
-        .insert(CloseButton)
+            }),
+        ))
+        .insert(GameOverUI)
         .id();
 
     //Spawn Menu Background image
@@ -83,6 +60,6 @@ fn spawn_main_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
             image: asset_server.load("images/menu_bomberbevy.png").into(),
             ..default()
         })
-        .add_child(close_button)
+        .add_child(texto)
         .insert(GameOverUI);
 }

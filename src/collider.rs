@@ -13,7 +13,7 @@ use crate::{
     logic::Flag,
     map::{Breakable, CustomProps, ObjectProps},
     player::Player,
-    utils::{animate_interactive_items, spawn_object},
+    utils::{animate_interactive_items, spawn_custom, spawn_object},
     GameState,
 };
 #[derive(PartialEq)]
@@ -145,17 +145,19 @@ pub fn explosion_collision_listener(
                 let random_value = rand::thread_rng().gen_range(0..100);
                 let upgrade_to_spawn = if random_value >= 0 && random_value <= 5 {
                     "objects/fireup.glb#Scene0"
-                } else {
+                } else if random_value >= 5 && random_value <= 10 {
                     "objects/bombup.glb#Scene0"
+                } else {
+                    "objects/speedup.glb#Scene0"
                 };
-                if random_value >= 0 && random_value <= 10 {
+                if random_value >= 0 && random_value <= 20 {
                     let object_props = ObjectProps {
                         add_floor: true,
                         is_floor: false,
                         interactive: true,
                         path: upgrade_to_spawn.to_owned(),
                         custom: Some(CustomProps {
-                            scale: Vec3::new(0.2, 0.1, 0.2),
+                            scale: Vec3::new(0.2, 0.3, 0.2),
                             rotation: Quat::from_rotation_y(0.0),
                             sum_translation: Vec3::ZERO,
                         }),
@@ -163,7 +165,7 @@ pub fn explosion_collision_listener(
                         name: String::from("Coin"),
                     };
 
-                    spawn_object(
+                    spawn_custom(
                         &mut commands,
                         &object_props,
                         &asset_server,

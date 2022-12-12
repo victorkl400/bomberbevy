@@ -26,7 +26,11 @@ impl Plugin for GameAudioPlugin {
                 SystemSet::on_enter(GameState::Gameplay)
                     .with_system(start_bg_music::<BackgroundChannel>),
             )
-            .add_startup_system_to_stage(StartupStage::PreStartup, load_audio);
+            .add_startup_system_to_stage(StartupStage::PreStartup, load_audio)
+            .add_system_set(
+                SystemSet::on_enter(GameState::GameOver)
+                    .with_system(stop_bg_music::<BackgroundChannel>),
+            );
     }
 }
 
@@ -77,4 +81,11 @@ fn start_bg_music<T: Component + Default>(
 ) {
     channel.set_volume(audio_handles.volume);
     channel.play(audio_handles.background_handle.clone());
+}
+
+fn stop_bg_music<T: Component + Default>(
+    channel: Res<AudioChannel<T>>,
+    audio_handles: Res<AudioState>,
+) {
+    channel.stop();
 }
