@@ -3,17 +3,17 @@
 [![Crates.io](https://img.shields.io/crates/v/bevy.svg)](https://crates.io/crates/bevy)
 [![Rust](https://github.com/bevyengine/bevy/workflows/CI/badge.svg)](https://github.com/bevyengine/bevy/actions)
 
-## What is BomberBevy?
+## 🧐 What is BomberBevy?
 
 As you may notice this is a bevy game that tries to copy Superbomberman R, but with low budget.
 
-## WARNING
+## ☢️ WARNING
 
 Bomberbevy is still in the _very_ early stages of development.
 Important features are missing.
 Documentation is sparse.
 
-## Improvement Goals
+## 🏆 Improvement Goals
 
 - **Audio**: Improve audio plugin/systems
 - **Audio**: Add Gameover SFX audio
@@ -23,7 +23,7 @@ Documentation is sparse.
 - **Logic**: Enemy towards player function
 - **Logic**: Improve GameOver logic
 
-## Getting Started
+## 👾 Getting Started
 
 Having **_Rust 1.51.0_** or later is a must for runnning this game.
 
@@ -40,7 +40,7 @@ cd bomberbevy
 cargo run -r
 ```
 
-## Libraries Used
+## 📓 Libraries Used
 
 Bevy is only possible because of the hard work put into these foundational technologies:
 
@@ -49,7 +49,7 @@ Bevy is only possible because of the hard work put into these foundational techn
 - [bevy_kira_audio](https://crates.io/crates/bevy_kira_audio): replace for bevy_audio
 - [rand](https://crates.io/crates/rand) a library for random number generation
 
-## Controls
+## 🕹 Controls
 
 Controls for playing this game
 
@@ -59,7 +59,7 @@ Controls for playing this game
 - **D**: Moves the player right
 - **Space**: Place bombs
 
-## Map Generation
+## 🗺 Map Generation
 
 This game implements a map generation based on a `txt` file placed under `assets/maps`.
 Make sure you dont put any block on the Player spawn point.
@@ -72,7 +72,7 @@ Make sure you dont put any block on the Player spawn point.
 - **#**: Spawns a Middle Tower
 - **Empty Space**: Spawns only the default floor
 
-## Screenshots
+## 📸 Screenshots
 
 Screenshots of Gameplay
 
