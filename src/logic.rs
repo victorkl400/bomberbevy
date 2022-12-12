@@ -5,6 +5,7 @@ use crate::{
     bomb::Bomb,
     constants::DEFAULT_OBJECT_SCALE,
     map::{Breakable, CustomProps, ObjectProps},
+    player::Player,
     utils::{spawn_custom, spawn_floor},
     GameState,
 };
@@ -16,7 +17,11 @@ pub struct Flag;
 
 impl Plugin for GameLogicPlugin {
     fn build(&self, app: &mut App) {
-        app.add_system_set(SystemSet::on_update(GameState::Gameplay).with_system(has_finalized));
+        app.add_system_set(
+            SystemSet::on_update(GameState::Gameplay)
+                .with_system(has_finalized)
+                .with_system(has_lose),
+        );
     }
 }
 fn has_finalized(
@@ -54,5 +59,19 @@ fn has_finalized(
             .insert(ActiveEvents::COLLISION_EVENTS)
             .insert(Collider::cuboid(0.3, 0.3, 0.3))
             .insert(RigidBody::Fixed);
+    }
+}
+
+fn has_lose(
+    breakable_query: Query<(Entity, &Breakable), Without<Player>>,
+    bomb_query: Query<(Entity, &Bomb), Without<Player>>,
+    mut player_query: Query<(Entity, &Player), With<Player>>,
+    mut game_state: ResMut<State<GameState>>,
+) {
+    let (player_ent, player) = player_query.single_mut();
+
+    if !breakable_query.is_empty() && player.bomb_amount == 0 && bomb_query.is_empty() {
+        println!("YOU LOSE");
+        game_state.set(GameState::GameOver);
     }
 }

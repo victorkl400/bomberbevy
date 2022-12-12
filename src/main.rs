@@ -5,6 +5,7 @@ use bevy_inspector_egui::WorldInspectorPlugin;
 use bomb::BombPlugin;
 use collider::ColliderPlugin;
 use constants::{HEIGHT, WIDTH};
+use gameover::GameOverPlugin;
 use logic::GameLogicPlugin;
 use map::MapPlugin;
 use menu::MenuPlugin;
@@ -16,6 +17,7 @@ pub mod audio;
 pub mod bomb;
 pub mod collider;
 pub mod constants;
+pub mod gameover;
 pub mod logic;
 pub mod map;
 pub mod menu;
@@ -27,6 +29,7 @@ pub enum GameState {
     Menu,
     Loading,
     Gameplay,
+    GameOver,
 }
 
 fn main() {
@@ -53,6 +56,7 @@ fn main() {
         .add_plugin(BombPlugin)
         .add_plugin(ColliderPlugin)
         .add_plugin(MenuPlugin)
+        .add_plugin(GameOverPlugin)
         //External Mod Import
         .add_plugin(EguiPlugin)
         .add_plugin(ActionPlugin)

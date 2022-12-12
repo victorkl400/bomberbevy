@@ -149,10 +149,10 @@ fn create_basic_map(mut commands: Commands, asset_server: Res<AssetServer>) {
                 add_floor: true,
                 is_floor: false,
                 interactive: true,
-                path: "objects/bombup.glb#Scene0".to_owned(),
+                path: "objects/speedup.glb#Scene0".to_owned(),
                 custom: Some(CustomProps {
                     scale: Vec3::new(0.1, 0.3, 0.2),
-                    rotation: Quat::from_rotation_y(45.0),
+                    rotation: Quat::from_rotation_y(0.0),
                     sum_translation: Vec3::new(0.0, 0.5, 0.0),
                 }),
                 breakable: true,

@@ -155,7 +155,7 @@ pub fn explosion_collision_listener(
                         interactive: true,
                         path: upgrade_to_spawn.to_owned(),
                         custom: Some(CustomProps {
-                            scale: Vec3::new(0.8, 0.4, 0.8),
+                            scale: Vec3::new(0.2, 0.1, 0.2),
                             rotation: Quat::from_rotation_y(0.0),
                             sum_translation: Vec3::ZERO,
                         }),

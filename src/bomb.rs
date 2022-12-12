@@ -44,8 +44,6 @@ impl Plugin for BombPlugin {
 /// * `keyboard`: Res<Input<KeyCode>>
 fn drop_bomb(
     mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
     mut player_query: Query<(&mut Player, &mut Transform)>,
     keyboard: Res<Input<KeyCode>>,
     time: Res<Time>,
