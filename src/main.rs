@@ -1,7 +1,13 @@
+use std::f32::consts::PI;
+
 use audio::GameAudioPlugin;
 use bevy::prelude::*;
 use bevy_egui::EguiPlugin;
 use bevy_inspector_egui::WorldInspectorPlugin;
+use bevy_rapier3d::{
+    prelude::{NoUserData, RapierPhysicsPlugin},
+    render::RapierDebugRenderPlugin,
+};
 use bomb::BombPlugin;
 use collider::ColliderPlugin;
 use constants::{HEIGHT, WIDTH};
@@ -10,6 +16,7 @@ use logic::GameLogicPlugin;
 use map::MapPlugin;
 use menu::MenuPlugin;
 use player::PlayerPlugin;
+use serde::__private::de;
 use simula_action::ActionPlugin;
 use simula_camera::{flycam::*, orbitcam::*};
 
@@ -63,6 +70,8 @@ fn main() {
         .add_plugin(OrbitCameraPlugin)
         .add_plugin(FlyCameraPlugin)
         .add_plugin(WorldInspectorPlugin::new())
+        .add_plugin(RapierPhysicsPlugin::<NoUserData>::default())
+        .add_plugin(RapierDebugRenderPlugin::default())
         //Systems
         .add_system_set(SystemSet::on_enter(GameState::Gameplay).with_system(setup_basic_scene))
         .add_startup_system(spawn_camera)
@@ -78,16 +87,20 @@ fn main() {
 /// * `commands`: Commands - This is the commands object that is passed into the function.
 fn setup_basic_scene(mut commands: Commands) {
     // Spawn Light
-    let light_location = Transform::from_xyz(0.0, 5.0, 0.5);
-    commands.spawn(PointLightBundle {
-        point_light: PointLight {
-            intensity: 5000.0,
-            shadows_enabled: false,
+    commands
+        .spawn(DirectionalLightBundle {
+            directional_light: DirectionalLight {
+                shadows_enabled: false,
+                ..default()
+            },
+            transform: Transform {
+                translation: Vec3::new(0.0, 2.0, 0.0),
+                rotation: Quat::from_rotation_x(-PI / 4.),
+                ..default()
+            },
             ..default()
-        },
-        transform: light_location,
-        ..default()
-    });
+        })
+        .insert(Name::new("SunLight"));
 }
 
 /// `spawn_camera` spawns a camera at a specific location

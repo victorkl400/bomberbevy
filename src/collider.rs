@@ -1,25 +1,27 @@
 use bevy::prelude::{
-    App, AssetServer, Commands, Component, DespawnRecursiveExt, Entity, EventReader, Plugin, Quat,
-    Query, Res, ResMut, SystemSet, Transform, Vec3, With, Without,
+    App, AssetServer, Commands, Component, DespawnRecursiveExt, Entity, EventReader, Plugin, Query,
+    Res, ResMut, SystemSet, Transform, With, Without,
 };
 use bevy_kira_audio::{DynamicAudioChannel, DynamicAudioChannels};
 use bevy_rapier3d::prelude::CollisionEvent;
-use rand::Rng;
+use serde::{Deserialize, Serialize};
 
 use crate::{
     audio::play_sfx,
     bomb::Bomb,
     constants::SFX_AUDIO_CHANNEL,
     logic::Flag,
-    map::{Breakable, CustomProps, ObjectProps},
+    map::Breakable,
     player::Player,
-    utils::{animate_interactive_items, spawn_custom, spawn_object},
+    utils::{animate_interactive_items, possibly_spawn_upgrade},
     GameState,
 };
-#[derive(PartialEq)]
+#[derive(Component, Clone, Debug, Serialize, Deserialize, PartialEq, Copy)]
 pub enum UpgradeType {
     Bomb,
     Fire,
+    Speed,
+    None,
 }
 #[derive(Component)]
 pub struct InteractiveItem {
@@ -95,13 +97,13 @@ pub fn player_and_item_collision_listener(
                     String::from("audios/sfx/get_item.ogg"),
                 );
                 //Give Player Upgrade
-                let (entidade, item) = interactive_query.get(*item_entity).unwrap();
+                let (_entidade, item) = interactive_query.get(*item_entity).unwrap();
                 if item.upgrade == UpgradeType::Bomb {
-                    player.bomb_amount += 1;
+                    player.bomb_amount += 1; //Give the player more bombs
                 } else if item.upgrade == UpgradeType::Fire {
-                    player.bomb_range += 1.0;
+                    player.bomb_range += 1.0; //Bombs affects 1.0 more on explosion
                 } else {
-                    player.speed += 0.1;
+                    player.speed += 0.2; //Player moves 0.2 times faster
                 }
             }
             CollisionEvent::Stopped(_e1, _e2, _flags) => {
@@ -156,6 +158,7 @@ pub fn explosion_collision_listener(
                 };
                 let (_, _breakable, breakable_transform) =
                     breakable_query.get(*breakable_entity).unwrap();
+
                 // Despawn breakable and play explosion sound
                 item_collision(
                     &mut commands,
@@ -164,37 +167,12 @@ pub fn explosion_collision_listener(
                     audio.create_channel(SFX_AUDIO_CHANNEL),
                     String::from("audios/sfx/bomb_explosion.ogg"),
                 );
-                //Possibly spawn an item
-                let random_value = rand::thread_rng().gen_range(0..100);
-                let upgrade_to_spawn = if random_value >= 0 && random_value <= 5 {
-                    "objects/fireup.glb#Scene0"
-                } else if random_value >= 5 && random_value <= 10 {
-                    "objects/bombup.glb#Scene0"
-                } else {
-                    "objects/speedup.glb#Scene0"
-                };
-                if random_value >= 0 && random_value <= 20 {
-                    let object_props = ObjectProps {
-                        add_floor: true,
-                        is_floor: false,
-                        interactive: true,
-                        path: upgrade_to_spawn.to_owned(),
-                        custom: Some(CustomProps {
-                            scale: Vec3::new(0.2, 0.3, 0.2),
-                            rotation: Quat::from_rotation_y(0.0),
-                            sum_translation: Vec3::ZERO,
-                        }),
-                        breakable: true,
-                        name: String::from("Coin"),
-                    };
-
-                    spawn_custom(
-                        &mut commands,
-                        &object_props,
-                        &asset_server,
-                        breakable_transform.translation,
-                    );
-                }
+                //May or May not spawn an upgrade on despawn breakable
+                possibly_spawn_upgrade(
+                    &mut commands,
+                    &asset_server,
+                    breakable_transform.translation,
+                );
             }
             CollisionEvent::Stopped(_e1, _e2, _flags) => {
                 // Collision OUT

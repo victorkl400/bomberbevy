@@ -3,6 +3,7 @@ use bevy_rapier3d::prelude::{ActiveCollisionTypes, ActiveEvents, Collider, Rigid
 
 use crate::{
     bomb::Bomb,
+    collider::UpgradeType,
     constants::DEFAULT_OBJECT_SCALE,
     map::{Breakable, CustomProps, ObjectProps},
     player::Player,
@@ -44,13 +45,14 @@ fn has_finalized(
         let object_props = ObjectProps {
             add_floor: false,
             is_floor: true,
-            interactive: false,
+            upgrade: UpgradeType::None,
             path: "objects/flag.glb#Scene0".to_owned(),
             custom: Some(CustomProps {
                 scale: DEFAULT_OBJECT_SCALE.to_owned(),
                 rotation: Quat::from_rotation_y(45.0),
                 sum_translation: Vec3::ZERO,
             }),
+            animated_rotation: false,
             breakable: false,
             name: String::from("EndFlag"),
         };

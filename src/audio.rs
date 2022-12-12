@@ -12,7 +12,10 @@ pub struct SoundEffectChannel;
 
 #[derive(Resource)]
 pub struct AudioState {
-    background_handle: Handle<AudioSource>,
+    level_1: Handle<AudioSource>,
+    game_over_1: Handle<AudioSource>,
+    game_over_2: Handle<AudioSource>,
+    game_over_3: Handle<AudioSource>,
     volume: f64,
 }
 pub struct GameAudioPlugin;
@@ -28,8 +31,12 @@ impl Plugin for GameAudioPlugin {
             )
             .add_startup_system_to_stage(StartupStage::PreStartup, load_audio)
             .add_system_set(
-                SystemSet::on_enter(GameState::GameOver)
+                SystemSet::on_exit(GameState::Gameplay)
                     .with_system(stop_bg_music::<BackgroundChannel>),
+            )
+            .add_system_set(
+                SystemSet::on_enter(GameState::GameOver)
+                    .with_system(play_game_over::<BackgroundChannel>),
             );
     }
 }
@@ -43,10 +50,16 @@ impl Plugin for GameAudioPlugin {
 /// world.
 /// * `asset_server`: Res<AssetServer> - This is the asset server that we'll use to load the audio file.
 fn load_audio(mut commands: Commands, asset_server: Res<AssetServer>) {
-    let background_handle: Handle<AudioSource> = asset_server.load("audios/background/level1.ogg");
+    let level_1: Handle<AudioSource> = asset_server.load("audios/background/level1.ogg");
+    let game_over_1: Handle<AudioSource> = asset_server.load("audios/sfx/game_over_1.ogg");
+    let game_over_2: Handle<AudioSource> = asset_server.load("audios/sfx/game_over_2.ogg");
+    let game_over_3: Handle<AudioSource> = asset_server.load("audios/sfx/game_over_3.ogg");
 
     commands.insert_resource(AudioState {
-        background_handle,
+        level_1,
+        game_over_1,
+        game_over_2,
+        game_over_3,
         volume: 0.1,
     });
 }
@@ -78,9 +91,17 @@ pub fn play_sfx(channel: &DynamicAudioChannel, asset_server: AssetServer, path: 
 fn start_bg_music<T: Component + Default>(
     channel: Res<AudioChannel<T>>,
     audio_handles: Res<AudioState>,
+    game_state: Res<State<GameState>>,
 ) {
+    channel.play(audio_handles.level_1.clone());
     channel.set_volume(audio_handles.volume);
-    channel.play(audio_handles.background_handle.clone());
+}
+
+fn play_game_over<T: Component + Default>(
+    channel: Res<AudioChannel<T>>,
+    audio_handles: Res<AudioState>,
+) {
+    channel.play(audio_handles.game_over_1.clone());
 }
 
 fn stop_bg_music<T: Component + Default>(

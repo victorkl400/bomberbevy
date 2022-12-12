@@ -4,11 +4,12 @@ use bevy::{
     time::Time,
 };
 use bevy_rapier3d::prelude::{ActiveCollisionTypes, ActiveEvents, Collider, RigidBody, Sensor};
+use rand::Rng;
 
 use crate::{
     collider::{InteractiveItem, UpgradeType},
     constants::DEFAULT_OBJECT_SCALE,
-    map::{Breakable, ObjectProps},
+    map::{AnimatedRotation, Breakable, CustomProps, ObjectProps},
 };
 
 //---------------------------Map Helpers--------------------------//
@@ -31,14 +32,14 @@ pub fn spawn_object(
     asset_server: &AssetServer,
     translation: Vec3,
 ) -> Entity {
-    //Make interactive objects bigger
-    let scale = if object_props.interactive {
+    //Make upgrade objects bigger
+    let scale = if object_props.upgrade != UpgradeType::None {
         DEFAULT_OBJECT_SCALE.to_owned() + Vec3::new(0.5, 0.5, 0.5)
     } else {
         DEFAULT_OBJECT_SCALE.to_owned()
     };
-    //Make interactive objects floating
-    let translation = if object_props.interactive {
+    //Make upgrade objects floating
+    let translation = if object_props.upgrade != UpgradeType::None {
         Vec3::new(translation.x, translation.y + 0.5, translation.z)
     } else {
         Vec3::new(translation.x, translation.y + 0.1, translation.z)
@@ -53,8 +54,8 @@ pub fn spawn_object(
         },
         ..default()
     });
-    if object_props.interactive {
-        //If interactive object, add collision events and make the collider smaller
+    if object_props.upgrade != UpgradeType::None {
+        //If upgrade object, add collision events and make the collider smaller
         object_spawn
             .insert(Sensor)
             .insert(InteractiveItem {
@@ -142,17 +143,20 @@ pub fn spawn_custom(
         },
         ..default()
     });
+    if object_props.animated_rotation {
+        object_spawn.insert(AnimatedRotation);
+    }
     if object_props.breakable {
         object_spawn
             .insert(Breakable)
             .insert(RigidBody::KinematicPositionBased);
     }
-    if object_props.interactive {
-        //If interactive object, add collision events and make the collider smaller
+    if object_props.upgrade != UpgradeType::None {
+        //If upgrade object, add collision events and make the collider smaller
         object_spawn
             .insert(Sensor)
             .insert(InteractiveItem {
-                upgrade: UpgradeType::Fire,
+                upgrade: object_props.upgrade,
             })
             .insert(ActiveCollisionTypes::KINEMATIC_STATIC)
             .insert(ActiveEvents::COLLISION_EVENTS)
@@ -169,7 +173,7 @@ pub fn spawn_custom(
 
 //---------------------------Items Helpers--------------------------//
 
-/// "For each interactive item, rotate it around the y axis."
+/// "For each upgrade item, rotate it around the y axis."
 ///
 /// The first line of the function is a query. A query is a way to get a list of entities that have
 /// certain components. In this case, we're getting a list of entities that have both the
@@ -180,10 +184,60 @@ pub fn spawn_custom(
 /// * `item_query`: Query<(&mut InteractiveItem, &mut Transform)>
 /// * `time`: Res<Time>
 pub fn animate_interactive_items(
-    mut item_query: Query<(&mut InteractiveItem, &mut Transform)>,
+    mut item_query: Query<(&mut AnimatedRotation, &mut Transform)>,
     time: Res<Time>,
 ) {
     for (_interactive_item, mut item_transform) in item_query.iter_mut() {
         item_transform.rotation = Quat::from_rotation_y(time.elapsed_seconds() * 2 as f32);
+    }
+}
+
+pub fn possibly_spawn_upgrade(
+    commands: &mut Commands,
+    asset_server: &AssetServer,
+    translation: Vec3,
+) {
+    //Possibly spawn an item
+
+    //Get a random value between 0 and 100
+    let random_value = rand::thread_rng().gen_range(0..100);
+
+    let upgrade_to_spawn;
+    let upgrade_name;
+    let upgrade_type;
+
+    //Since 20% or 20 numbers between 0 and 100 are possible
+    //we divide the 20 number into 4 options within a range of 5 numbers each
+    if random_value >= 0 && random_value <= 5 {
+        upgrade_to_spawn = "objects/fireup.glb#Scene0";
+        upgrade_name = "FireUp";
+        upgrade_type = UpgradeType::Fire;
+    } else if random_value >= 5 && random_value <= 15 {
+        //More chance to get bomb upgrade
+        upgrade_to_spawn = "objects/bombup.glb#Scene0";
+        upgrade_name = "BombUp";
+        upgrade_type = UpgradeType::Bomb;
+    } else {
+        upgrade_to_spawn = "objects/speedup.glb#Scene0";
+        upgrade_name = "SpeedUp";
+        upgrade_type = UpgradeType::Speed;
+    };
+    if random_value >= 0 && random_value <= 20 {
+        let object_props = ObjectProps {
+            add_floor: true,
+            is_floor: false,
+            upgrade: upgrade_type,
+            path: upgrade_to_spawn.to_owned(),
+            custom: Some(CustomProps {
+                scale: Vec3::new(0.2, 0.3, 0.2),
+                rotation: Quat::from_rotation_y(0.0),
+                sum_translation: Vec3::ZERO,
+            }),
+            animated_rotation: true,
+            breakable: true,
+            name: String::from(upgrade_name),
+        };
+
+        let upgrade = spawn_custom(commands, &object_props, &asset_server, translation);
     }
 }

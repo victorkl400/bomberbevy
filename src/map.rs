@@ -8,6 +8,7 @@ use bevy::{prelude::*, utils::HashMap};
 use bevy_inspector_egui::Inspectable;
 
 use crate::{
+    collider::UpgradeType,
     utils::{spawn_custom, spawn_floor, spawn_object},
     GameState,
 };
@@ -16,6 +17,9 @@ pub struct MapPlugin;
 
 #[derive(Component, Inspectable)]
 pub struct Breakable;
+
+#[derive(Component, Inspectable)]
+pub struct AnimatedRotation;
 
 #[derive(Component, Inspectable)]
 pub struct ObjectCollider {}
@@ -31,7 +35,8 @@ pub struct ObjectProps {
     pub add_floor: bool,
     pub path: String,
     pub is_floor: bool,
-    pub interactive: bool,
+    pub upgrade: UpgradeType,
+    pub animated_rotation: bool,
     pub breakable: bool,
     pub custom: Option<CustomProps>,
 }
@@ -98,9 +103,10 @@ fn create_basic_map(mut commands: Commands, asset_server: Res<AssetServer>) {
             ObjectProps {
                 add_floor: false,
                 is_floor: true,
-                interactive: false,
+                upgrade: UpgradeType::None,
                 path: "objects/tile.glb#Scene0".to_owned(),
                 custom: None,
+                animated_rotation: false,
                 breakable: false,
                 name: String::from("Floor"),
             },
@@ -110,9 +116,10 @@ fn create_basic_map(mut commands: Commands, asset_server: Res<AssetServer>) {
             ObjectProps {
                 add_floor: false,
                 is_floor: false,
-                interactive: false,
+                upgrade: UpgradeType::None,
                 path: "objects/towerSquare_sampleE.glb#Scene0".to_owned(),
                 custom: None,
+                animated_rotation: false,
                 breakable: false,
                 name: String::from("Wall"),
             },
@@ -122,9 +129,10 @@ fn create_basic_map(mut commands: Commands, asset_server: Res<AssetServer>) {
             ObjectProps {
                 add_floor: true,
                 is_floor: false,
-                interactive: false,
+                upgrade: UpgradeType::None,
                 path: "objects/towerSquare_middleA.glb#Scene0".to_owned(),
                 custom: None,
+                animated_rotation: false,
                 breakable: false,
                 name: String::from("Block"),
             },
@@ -134,13 +142,14 @@ fn create_basic_map(mut commands: Commands, asset_server: Res<AssetServer>) {
             ObjectProps {
                 add_floor: true,
                 is_floor: false,
-                interactive: true,
+                upgrade: UpgradeType::Speed,
                 path: "objects/speedup.glb#Scene0".to_owned(),
                 custom: Some(CustomProps {
                     scale: Vec3::new(0.1, 0.3, 0.2),
                     rotation: Quat::from_rotation_y(0.0),
                     sum_translation: Vec3::new(0.0, 0.5, 0.0),
                 }),
+                animated_rotation: true,
                 breakable: true,
                 name: String::from("Coin"),
             },
@@ -150,9 +159,10 @@ fn create_basic_map(mut commands: Commands, asset_server: Res<AssetServer>) {
             ObjectProps {
                 add_floor: true,
                 is_floor: false,
-                interactive: false,
+                upgrade: UpgradeType::None,
                 path: "objects/towerSquare_sampleE.glb#Scene0".to_owned(),
                 custom: None,
+                animated_rotation: false,
                 breakable: false,
                 name: String::from("RoundedWall"),
             },
@@ -162,9 +172,10 @@ fn create_basic_map(mut commands: Commands, asset_server: Res<AssetServer>) {
             ObjectProps {
                 add_floor: false,
                 is_floor: false,
-                interactive: false,
+                upgrade: UpgradeType::None,
                 path: "objects/towerSquare_sampleA.glb#Scene0".to_owned(),
                 custom: None,
+                animated_rotation: false,
                 breakable: false,
                 name: String::from("TowerA"),
             },
@@ -174,9 +185,10 @@ fn create_basic_map(mut commands: Commands, asset_server: Res<AssetServer>) {
             ObjectProps {
                 add_floor: false,
                 is_floor: false,
-                interactive: false,
+                upgrade: UpgradeType::None,
                 path: "objects/towerSquare_sampleE.glb#Scene0".to_owned(),
                 custom: None,
+                animated_rotation: false,
                 breakable: false,
                 name: String::from("TowerC"),
             },
@@ -186,9 +198,10 @@ fn create_basic_map(mut commands: Commands, asset_server: Res<AssetServer>) {
             ObjectProps {
                 add_floor: false,
                 is_floor: true,
-                interactive: false,
+                upgrade: UpgradeType::None,
                 path: "objects/tile_straight.glb#Scene0".to_owned(),
                 custom: None,
+                animated_rotation: false,
                 breakable: false,
                 name: String::from("FloorStraight"),
             },
@@ -198,13 +211,14 @@ fn create_basic_map(mut commands: Commands, asset_server: Res<AssetServer>) {
             ObjectProps {
                 add_floor: true,
                 is_floor: false,
-                interactive: false,
+                upgrade: UpgradeType::None,
                 path: "objects/workbench.glb#Scene0".to_owned(),
                 custom: Some(CustomProps {
                     scale: Vec3::new(0.5, 0.5, 0.6),
                     rotation: Quat::from_rotation_y(0.0),
                     sum_translation: Vec3::new(0.0, 0.2, 0.0),
                 }),
+                animated_rotation: false,
                 breakable: true,
                 name: String::from("Workbench"),
             },
