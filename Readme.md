@@ -25,7 +25,7 @@ Documentation is sparse.
 
 ## Getting Started
 
-Having Rust 1.51.0 or later is a must for runnning this game.
+Having _Rust 1.51.0_ or later is a must for runnning this game.
 
 Follow the [Setup guide](https://bevyengine.org/learn/book/getting-started/setup/) to ensure your development environment is set up correctly.
 
