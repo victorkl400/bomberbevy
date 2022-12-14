@@ -1,7 +1,10 @@
 use bevy::input::keyboard::KeyboardInput;
 use bevy::input::ButtonState;
 use bevy::{app::AppExit, prelude::*};
+use bevy_kira_audio::DynamicAudioChannels;
 
+use crate::audio::play_sfx;
+use crate::constants::SFX_AUDIO_CHANNEL;
 use crate::{
     constants::{HEIGHT, WIDTH},
     GameState,
@@ -39,12 +42,19 @@ fn any_button_pressed(
     mut key_evr: EventReader<KeyboardInput>,
     menu_root: Query<Entity, With<MenuUI>>,
     mut game_state: ResMut<State<GameState>>,
+    asset_server: Res<AssetServer>,
+    mut audio: ResMut<DynamicAudioChannels>,
 ) {
     for ev in key_evr.iter() {
         match ev.state {
             ButtonState::Pressed => {
                 let root_entity = menu_root.single();
                 commands.entity(root_entity).despawn_recursive();
+                play_sfx(
+                    audio.create_channel(SFX_AUDIO_CHANNEL),
+                    asset_server.to_owned(),
+                    String::from("audios/sfx/menu_click.ogg"),
+                );
 
                 game_state.set(GameState::Gameplay).unwrap();
             }

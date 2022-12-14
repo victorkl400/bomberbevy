@@ -1,7 +1,9 @@
 use bevy::prelude::*;
+use bevy_kira_audio::DynamicAudioChannels;
 
 use crate::{
-    constants::{HEIGHT, WIDTH},
+    audio::play_sfx,
+    constants::{HEIGHT, SFX_AUDIO_CHANNEL, WIDTH},
     GameState, Level,
 };
 
@@ -28,6 +30,8 @@ fn enter_pressed(
     next_level_root: Query<Entity, With<NextLevelUI>>,
     mut game_state: ResMut<State<GameState>>,
     mut level_state: ResMut<State<Level>>,
+    asset_server: Res<AssetServer>,
+    mut audio: ResMut<DynamicAudioChannels>,
 ) {
     if keyboard.just_pressed(KeyCode::Return) {
         let root_entity = next_level_root.single();
@@ -47,6 +51,11 @@ fn enter_pressed(
             level_state.set(Level::Level1).unwrap();
             game_state.set(GameState::Menu).unwrap();
         }
+        play_sfx(
+            audio.create_channel(SFX_AUDIO_CHANNEL),
+            asset_server.to_owned(),
+            String::from("audios/sfx/menu_click.ogg"),
+        );
     }
 }
 /// We create a TextBundle with a Text that has a single section, and we set the alignment of the Text
