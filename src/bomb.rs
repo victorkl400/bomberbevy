@@ -18,16 +18,23 @@ pub struct BombPlugin;
 pub struct Bomb {
     explode_timer: Timer,
 }
+#[derive(Component)]
+pub struct BombAmountText;
+
 impl Plugin for BombPlugin {
     fn build(&self, app: &mut App) {
         app.add_system_set(
             SystemSet::on_update(GameState::Gameplay)
                 .with_system(drop_bomb)
-                .with_system(explode_bomb),
-        );
+                .with_system(explode_bomb)
+                .with_system(update_text),
+        )
+        .add_system_set(SystemSet::on_enter(GameState::Gameplay).with_system(text_setup));
     }
 }
-
+fn teste() {
+    println!("opa");
+}
 /// It spawns a bomb when the player presses the spacebar, and the bomb explodes after a certain amount
 /// of time
 ///
@@ -138,5 +145,47 @@ fn explode_bomb(
                 String::from("audios/sfx/bomb_explosion.ogg"),
             );
         }
+    }
+}
+
+fn text_setup(mut commands: Commands, asset_server: Res<AssetServer>) {
+    commands.spawn((
+        // Create a TextBundle that has a Text with a list of sections.
+        TextBundle::from_sections([
+            TextSection::new(
+                "Bombs: ",
+                TextStyle {
+                    font: asset_server.load("fonts/Kenney-Future.ttf"),
+                    font_size: 30.0,
+                    color: Color::BLACK,
+                },
+            ),
+            TextSection::from_style(TextStyle {
+                font: asset_server.load("fonts/Kenney-Future.ttf"),
+                font_size: 30.0,
+                color: Color::BLACK,
+            }),
+        ])
+        .with_style(Style {
+            position_type: PositionType::Absolute,
+            position: UiRect {
+                bottom: Val::Px(5.0),
+                right: Val::Px(15.0),
+                ..default()
+            },
+            ..default()
+        }),
+        BombAmountText,
+    ));
+}
+
+fn update_text(
+    mut bomb_text_query: Query<&mut Text, With<BombAmountText>>,
+    player_query: Query<&Player>,
+) {
+    let player = player_query.single();
+    for mut text in &mut bomb_text_query {
+        // Update the value of the second section
+        text.sections[1].value = player.bomb_amount.to_string();
     }
 }
